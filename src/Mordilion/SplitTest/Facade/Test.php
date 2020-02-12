@@ -109,9 +109,11 @@ final class Test
             mt_srand($this->test->getSeed());
         }
 
-        return mt_rand(1, array_sum(array_map(static function ($variation) {
+        $distributions = array_map(static function ($variation) {
             /** @var VariationModel $variation */
             return $variation->getDistribution();
-        }, $variations)));
+        }, $variations);
+
+        return mt_rand(1, (int) array_sum($distributions));
     }
 }

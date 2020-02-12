@@ -115,7 +115,7 @@ final class Test
     /**
      * @param int $seed
      */
-    public function setSeed(int $seed)
+    public function setSeed(int $seed): void
     {
         $this->seed = $seed;
     }
