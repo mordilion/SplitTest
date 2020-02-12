@@ -1,0 +1,25 @@
+{
+    "name": "mordilion/split-test",
+    "type": "library",
+    "description": "A library to get the ability of split testing (A/B testing)",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Henning Huncke",
+            "email": "mordilion@gmx.de"
+        }
+    ],
+    "require": {
+        "php": ">=7.1",
+        "ext-iconv": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Mordilion\\SplitTest\\": "src/Mordilion/SplitTest/"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.0",
+        "vimeo/psalm": "^3.8"
+    }
+}
