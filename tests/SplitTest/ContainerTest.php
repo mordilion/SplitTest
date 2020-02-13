@@ -113,4 +113,16 @@ class ContainerTest extends TestCase
             $this->assertCount(1, $test->getVariations());
         }
     }
+
+    public function testContainerProvidesRightTestVariation()
+    {
+        $string = 'Test:1478179:1=A:1,B:1,C:1';
+
+        $container = Container::fromString(urldecode($string));
+        $variation = $container->getTestVariation('Test');
+
+        for ($i = 1; $i <= 1000; $i++) {
+            $this->assertSame($variation, $container->getTestVariation('Test'));
+        }
+    }
 }

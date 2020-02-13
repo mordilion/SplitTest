@@ -15,6 +15,7 @@ namespace Mordilion\SplitTest;
 
 use Mordilion\SplitTest\Facade\Test as TestFacade;
 use Mordilion\SplitTest\Model\Test;
+use Mordilion\SplitTest\Model\Test\Variation;
 
 /**
  * @author Henning Huncke <mordilion@gmx.de>
@@ -69,28 +70,14 @@ class Container
      */
     public function deliver(string $cookie = 'SplitTests', string $header = 'X-Split-Tests'): void
     {
-        $tests = [];
-
-        /** @var Test $test */
-        foreach ($this->getTests() as $test) {
-            $testFacade = new TestFacade($test);
-            /** @var Test\Variation $variation */
-            $variation = $testFacade->selectVariation();
-
-            $testName = urlencode($test->getName()) ;
-            $variationName = urlencode($variation->getName());
-
-            define($testName, $variationName);
-            $tests[] = $testName . ':' . $test->getSeed() . ':' . (int) $test->isEnabled()
-                . '=' . $variationName . ':' . $variation->getDistribution();
-        }
+        $deliveryString = $this->toString();
 
         if (!empty($cookie)) {
-            setcookie($cookie, implode(';', $tests));
+            setcookie($cookie, $deliveryString);
         }
 
         if (!empty($header)) {
-            header($header . ': ' . implode(';', $tests));
+            header($header . ': ' . $deliveryString);
         }
     }
 
@@ -138,6 +125,34 @@ class Container
     }
 
     /**
+     * @param string $name
+     *
+     * @return Test|null
+     */
+    public function getTest(string $name): ?Test
+    {
+        return $this->tests[$name] ?? null;
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return Variation|null
+     */
+    public function getTestVariation(string $name): ?Variation
+    {
+        $test = $this->getTest($name);
+
+        if ($test === null) {
+            return null;
+        }
+
+        $testFacade = new TestFacade($test);
+
+        return $testFacade->selectVariation();
+    }
+
+    /**
      * @return Test[]
      */
     public function getTests(): array
@@ -151,5 +166,36 @@ class Container
     public function setTests(array $tests): void
     {
         $this->tests = $tests;
+    }
+
+    /**
+     * @return string
+     */
+    public function toString(): string
+    {
+        $tests = [];
+
+        /** @var Test $test */
+        foreach ($this->getTests() as $test) {
+            $testFacade = new TestFacade($test);
+            /** @var Variation $variation */
+            $variation = $testFacade->selectVariation();
+
+            $testName = urlencode($test->getName()) ;
+            $variationName = urlencode($variation->getName());
+
+            $tests[] = $testName . ':' . $test->getSeed() . ':' . (int) $test->isEnabled()
+                . '=' . $variationName . ':' . $variation->getDistribution();
+        }
+
+        return implode(';', $tests);
+    }
+
+    /**
+     * @return string
+     */
+    public function __toString(): string
+    {
+        return $this->toString();
     }
 }

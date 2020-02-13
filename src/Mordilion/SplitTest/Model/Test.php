@@ -20,7 +20,7 @@ use Mordilion\SplitTest\Model\Test\Variation;
  */
 final class Test
 {
-    private const FROM_STRING_PATTERN = '/([\w\s_-]+)\:(\d+)\:(1|0)\=(([\w\s_-]+)(\:\d+),?)(?5)*/';
+    private const FROM_STRING_PATTERN = '/([\w\s_-]+)\:(\d+)\:(1|0)\=((([\w\s_-]+)(\:\d+),?)(?5)*)/';
 
 
     /**

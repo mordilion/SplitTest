@@ -78,6 +78,10 @@ final class Variation
         $items = explode(',', $string);
 
         foreach ($items as $item) {
+            if (empty($item)) {
+                continue;
+            }
+
             $collection[] = self::fromString($item);
         }
 
