@@ -42,6 +42,10 @@ final class Test
      */
     public function callCallback(VariationModel $variation): void
     {
+        if (!$this->test->isEnabled()) {
+            return;
+        }
+
         $callback = $this->test->getCallback();
 
         if (is_callable($callback)) {
