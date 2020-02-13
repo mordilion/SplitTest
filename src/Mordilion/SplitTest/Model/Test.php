@@ -20,7 +20,7 @@ use Mordilion\SplitTest\Model\Test\Variation;
  */
 final class Test
 {
-    private const FROM_STRING_PATTERN = '/([\w_-]+)\:(\d+)\:(1|0)\=(([\w_-]+)(\:\d+),?)(?5)*/';
+    private const FROM_STRING_PATTERN = '/([\w\s_-]+)\:(\d+)\:(1|0)\=(([\w\s_-]+)(\:\d+),?)(?5)*/';
 
 
     /**
@@ -47,6 +47,11 @@ final class Test
      * @var Variation[]
      */
     private $variations;
+
+    /**
+     * @var Variation|null
+     */
+    private $selectedVariation;
 
 
     /**
@@ -76,7 +81,7 @@ final class Test
     {
         $string = trim($string);
 
-        if (!preg_match_all(self::FROM_STRING_PATTERN, $string, $matches, PREG_SET_ORDER, 0)) {
+        if (!preg_match(self::FROM_STRING_PATTERN, $string, $matches, 0, 0)) {
             throw new \InvalidArgumentException('Could not match string.');
         }
 
@@ -146,5 +151,21 @@ final class Test
     public function getVariations(): array
     {
         return $this->variations;
+    }
+
+    /**
+     * @return Variation|null
+     */
+    public function getSelectedVariation(): ?Variation
+    {
+        return $this->selectedVariation;
+    }
+
+    /**
+     * @param Variation|null $selectedVariation
+     */
+    public function setSelectedVariation(?Variation $selectedVariation): void
+    {
+        $this->selectedVariation = $selectedVariation;
     }
 }

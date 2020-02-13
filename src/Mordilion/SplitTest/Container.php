@@ -43,15 +43,32 @@ class Container
     }
 
     /**
-     * @param string $prefix
-     * @param string $deliveryName
+     * @param string $string
+     * @param int    $seed
+     *
+     * @return Container
      */
-    public function deliver(string $prefix = 'SPLIT_TEST_', string $deliveryName = 'X-Split-Tests'): void
+    public static function fromString(string $string, int $seed = 0): Container
     {
-        if (empty($deliveryName)) {
-            throw new \RuntimeException('The delivery name must be set.');
+        $string = trim($string);
+        $testStrings = explode(';', $string);
+
+        $instance = new self($seed);
+
+        foreach ($testStrings as $testString) {
+            $test = Test::fromString($testString);
+            $instance->addTest($test);
         }
 
+        return $instance;
+    }
+
+    /**
+     * @param string $cookie
+     * @param string $header
+     */
+    public function deliver(string $cookie = 'SplitTests', string $header = 'X-Split-Tests'): void
+    {
         $tests = [];
 
         /** @var Test $test */
@@ -60,15 +77,21 @@ class Container
             /** @var Test\Variation $variation */
             $variation = $testFacade->selectVariation();
 
-            $testName = urlencode($prefix . $test->getName());
-            $variationName = $variation->getName();
+            $testName = urlencode($test->getName()) ;
+            $variationName = urlencode($variation->getName());
 
             define($testName, $variationName);
-            $tests[] = $testName . '=' . $variationName;
+            $tests[] = $testName . ':' . $test->getSeed() . ':' . (int) $test->isEnabled()
+                . '=' . $variationName . ':' . $variation->getDistribution();
         }
 
-        setcookie($deliveryName, implode(';', $tests));
-        header($deliveryName . ': ' . implode(';', $tests));
+        if (!empty($cookie)) {
+            setcookie($cookie, implode(';', $tests));
+        }
+
+        if (!empty($header)) {
+            header($header . ': ' . implode(';', $tests));
+        }
     }
 
     /**

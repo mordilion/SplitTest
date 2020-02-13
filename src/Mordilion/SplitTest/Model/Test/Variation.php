@@ -18,7 +18,7 @@ namespace Mordilion\SplitTest\Model\Test;
  */
 final class Variation
 {
-    private const FROM_STRING_PATTERN = '/([\w_-]+)\:(\d+),?/';
+    private const FROM_STRING_PATTERN = '/([\w\s_-]+)\:(\d+),?/';
 
 
     /**
@@ -57,7 +57,7 @@ final class Variation
     {
         $string = trim($string);
 
-        if (!preg_match_all(self::FROM_STRING_PATTERN, $string, $matches, PREG_SET_ORDER, 0)) {
+        if (!preg_match(self::FROM_STRING_PATTERN, $string, $matches, 0, 0)) {
             throw new \InvalidArgumentException('Could not match string.');
         }
 

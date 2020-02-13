@@ -66,34 +66,37 @@ final class Test
     }
 
     /**
+     * @param bool $force
+     *
      * @return VariationModel
      */
-    public function selectVariation(): VariationModel
+    public function selectVariation(bool $force = false): VariationModel
     {
-        $variations = $this->test->getVariations();
-        $fallbackVariation = reset($variations);
+        $selectedVariation = $this->test->getSelectedVariation();
 
-        if (count($variations) === 1) {
-            $this->callCallback($fallbackVariation);
+        if ($selectedVariation === null || $force) {
+            $variations = $this->test->getVariations();
+            $selectedVariation = reset($variations);
 
-            return $fallbackVariation;
-        }
+            if (count($variations) > 1) {
+                $random = $this->getRandomBySeed($variations);
+                $distribution = 0;
 
-        $selectedVariation = $fallbackVariation;
-        $random = $this->getRandomBySeed($variations);
-        $distribution = 0;
+                foreach ($variations as $variation) {
+                    $distribution += $variation->getDistribution();
 
-        foreach ($variations as $variation) {
-            $distribution += $variation->getDistribution();
+                    if ($random <= $distribution) {
+                        $selectedVariation = $variation;
 
-            if ($random <= $distribution) {
-                $selectedVariation = $variation;
-
-                break;
+                        break;
+                    }
+                }
             }
-        }
 
-        $this->callCallback($selectedVariation);
+            $this->callCallback($selectedVariation);
+
+            $this->test->setSelectedVariation($selectedVariation);
+        }
 
         return $selectedVariation;
     }

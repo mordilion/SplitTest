@@ -100,4 +100,17 @@ class ContainerTest extends TestCase
         $this->assertEmpty($test1->getSeed());
         $this->assertEmpty($test2->getSeed());
     }
+
+    public function testContainerCanBeCreatedFromString()
+    {
+        $string = 'First+Test:1478982179:1=Version+C:1;Second+Test:1344290232:0=Version+B:1';
+
+        $container = Container::fromString(urldecode($string));
+
+        $this->assertCount(2, $container->getTests());
+
+        foreach ($container->getTests() as $test) {
+            $this->assertCount(1, $test->getVariations());
+        }
+    }
 }
