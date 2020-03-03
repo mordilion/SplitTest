@@ -52,7 +52,7 @@ class Container
     public static function fromString(string $string, int $seed = 0): Container
     {
         $string = trim($string);
-        $testStrings = explode(';', $string);
+        $testStrings = explode('|', $string);
 
         $instance = new self($seed);
 
@@ -188,7 +188,7 @@ class Container
                 . '=' . $variationName . ':' . $variation->getDistribution();
         }
 
-        return implode(';', $tests);
+        return implode('|', $tests);
     }
 
     /**

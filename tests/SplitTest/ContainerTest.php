@@ -103,7 +103,7 @@ class ContainerTest extends TestCase
 
     public function testContainerCanBeCreatedFromString()
     {
-        $string = 'First+Test:1478982179:1=Version+C:1;Second+Test:1344290232:0=Version+B:1';
+        $string = 'First+Test:1478982179:1=Version+C:1|Second+Test:1344290232:0=Version+B:1';
 
         $container = Container::fromString(urldecode($string));
 
