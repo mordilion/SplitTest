@@ -135,13 +135,14 @@ class Container
     }
 
     /**
-     * @param string $name
+     * @param string      $testName
+     * @param string|null $variationName
      *
      * @return Variation|null
      */
-    public function getTestVariation(string $name): ?Variation
+    public function getTestVariation(string $testName, ?string $variationName = null): ?Variation
     {
-        $test = $this->getTest($name);
+        $test = $this->getTest($testName);
 
         if ($test === null) {
             return null;
@@ -149,7 +150,7 @@ class Container
 
         $testFacade = new TestFacade($test);
 
-        return $testFacade->selectVariation();
+        return $testFacade->selectVariation(false, $variationName);
     }
 
     /**
