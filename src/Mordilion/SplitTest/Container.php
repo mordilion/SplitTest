@@ -57,6 +57,10 @@ class Container
         $instance = new self($seed);
 
         foreach ($testStrings as $testString) {
+            if (empty($testString)) {
+                continue;
+            }
+
             $test = Test::fromString($testString);
             $instance->addTest($test);
         }
