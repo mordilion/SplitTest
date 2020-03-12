@@ -70,19 +70,38 @@ final class Test
     }
 
     /**
-     * @param bool $force
+     * @param string $name
+     *
+     * @return VariationModel|null
+     */
+    public function getVariationByName(string $name): ?VariationModel
+    {
+        $variations = $this->test->getVariations();
+
+        foreach ($variations as $variation) {
+            if ($variation->getName() === $name) {
+                return $variation;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param bool        $force
+     * @param string|null $variationName
      *
      * @return VariationModel
      */
-    public function selectVariation(bool $force = false): VariationModel
+    public function selectVariation(bool $force = false, string $variationName = null): VariationModel
     {
         $selectedVariation = $this->test->getSelectedVariation();
 
         if ($selectedVariation === null || $force) {
             $variations = $this->test->getVariations();
-            $selectedVariation = reset($variations);
+            $selectedVariation = $variationName !== null ? $this->getVariationByName($variationName) : reset($variations);
 
-            if (count($variations) > 1) {
+            if ((count($variations) > 1 && $variationName === null) || $selectedVariation === null) {
                 $random = $this->getRandomBySeed($variations);
                 $distribution = 0;
 

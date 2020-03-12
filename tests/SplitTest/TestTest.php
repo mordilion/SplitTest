@@ -51,11 +51,14 @@ class TestTest extends TestCase
         $test = new Test('test-test', true);
         $testFacade = new TestFacade($test);
 
-        $variation = new Variation('A');
-        $test->addVariation($variation);
+        $variationA = new Variation('A');
+        $test->addVariation($variationA);
+
+        $variationB = new Variation('B');
+        $test->addVariation($variationB);
 
         for ($i = 1; $i <= 1000; $i++) {
-            $this->assertSame($variation, $testFacade->selectVariation());
+            $this->assertSame($variationB, $testFacade->selectVariation(false, 'B'));
         }
     }
 }
