@@ -13,12 +13,12 @@ declare(strict_types=1);
 
 namespace Mordilion\SplitTest\Model;
 
-use Mordilion\SplitTest\Model\Test\Variation;
+use Mordilion\SplitTest\Model\Experiment\Variation;
 
 /**
  * @author Henning Huncke <mordilion@gmx.de>
  */
-final class Test
+final class Experiment
 {
     private const FROM_STRING_PATTERN = '/([\w\s_-]+)\:(-?\d+)\:(1|0)\=((([\w\s_-]+)(\:\d+),?)(?5)*)/';
 
@@ -75,9 +75,9 @@ final class Test
     /**
      * @param string $string Format: "test_1:423:1=var_a:1,var_b:1,..." > "name:seed=variation:weight,variation:weight,..."
      *
-     * @return Test
+     * @return Experiment
      */
-    public static function fromString(string $string): Test
+    public static function fromString(string $string): Experiment
     {
         $string = trim($string);
 

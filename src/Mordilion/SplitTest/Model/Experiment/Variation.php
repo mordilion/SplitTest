@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Mordilion\SplitTest\Model\Test;
+namespace Mordilion\SplitTest\Model\Experiment;
 
 /**
  * @author Henning Huncke <mordilion@gmx.de>

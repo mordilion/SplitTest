@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Mordilion\SplitTest;
 
-use Mordilion\SplitTest\Facade\Test as TestFacade;
-use Mordilion\SplitTest\Model\Test;
-use Mordilion\SplitTest\Model\Test\Variation;
+use Mordilion\SplitTest\Facade\Experiment as ExperimentFacade;
+use Mordilion\SplitTest\Model\Experiment;
+use Mordilion\SplitTest\Model\Experiment\Variation;
 use PHPUnit\Framework\TestCase;
 
 /**
  * @author Henning Huncke <henning.huncke@check24.de>
  */
-class TestTest extends TestCase
+class ExperimentTest extends TestCase
 {
     public function testTestSelectsEveryTimeTheSameVariationBasedOnProvidedSeed()
     {
@@ -20,36 +20,36 @@ class TestTest extends TestCase
         $seed2 = 987654321;
         $seed3 = time();
 
-        $test = new Test('test-test', true);
-        $testFacade = new TestFacade($test);
+        $test = new Experiment('test-test', true);
+        $experimentFacade = new ExperimentFacade($test);
 
         for ($i = 1; $i < 1000; $i++) { // make it hard!
             $test->addVariation(new Variation((string) $i));
         }
 
         $test->setSeed($seed1);
-        $seedVariation1 = $testFacade->selectVariation();
-        $seedVariation2 = $testFacade->selectVariation();
+        $seedVariation1 = $experimentFacade->selectVariation();
+        $seedVariation2 = $experimentFacade->selectVariation();
 
         $this->assertSame($seedVariation1->getName(), $seedVariation2->getName());
 
         $test->setSeed($seed2);
-        $seedVariation1 = $testFacade->selectVariation();
-        $seedVariation2 = $testFacade->selectVariation();
+        $seedVariation1 = $experimentFacade->selectVariation();
+        $seedVariation2 = $experimentFacade->selectVariation();
 
         $this->assertSame($seedVariation1->getName(), $seedVariation2->getName());
 
         $test->setSeed($seed3);
-        $seedVariation1 = $testFacade->selectVariation();
-        $seedVariation2 = $testFacade->selectVariation();
+        $seedVariation1 = $experimentFacade->selectVariation();
+        $seedVariation2 = $experimentFacade->selectVariation();
 
         $this->assertSame($seedVariation1->getName(), $seedVariation2->getName());
     }
 
     public function testTestSelectsEachTimeTheSameVariationIfThereIsOnlyOneVariation()
     {
-        $test = new Test('test-test', true);
-        $testFacade = new TestFacade($test);
+        $test = new Experiment('test-test', true);
+        $experimentFacade = new ExperimentFacade($test);
 
         $variationA = new Variation('A');
         $test->addVariation($variationA);
@@ -58,7 +58,7 @@ class TestTest extends TestCase
         $test->addVariation($variationB);
 
         for ($i = 1; $i <= 1000; $i++) {
-            $this->assertSame($variationB, $testFacade->selectVariation(false, 'B'));
+            $this->assertSame($variationB, $experimentFacade->selectVariation(false, 'B'));
         }
     }
 }

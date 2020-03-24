@@ -13,28 +13,28 @@ declare(strict_types=1);
 
 namespace Mordilion\SplitTest\Facade;
 
-use Mordilion\SplitTest\Model\Test as TestModel;
-use Mordilion\SplitTest\Model\Test\Variation as VariationModel;
+use Mordilion\SplitTest\Model\Experiment as ExperimentModel;
+use Mordilion\SplitTest\Model\Experiment\Variation as VariationModel;
 
 /**
  * @author Henning Huncke <henning.huncke@check24.de>
  */
-final class Test
+final class Experiment
 {
     /**
-     * @var TestModel
+     * @var ExperimentModel
      */
-    private $test;
+    private $experiment;
 
 
     /**
      * Test constructor.
      *
-     * @param TestModel $test
+     * @param ExperimentModel $experiment
      */
-    public function __construct(TestModel $test)
+    public function __construct(ExperimentModel $experiment)
     {
-        $this->test = $test;
+        $this->experiment = $experiment;
     }
 
     /**
@@ -42,14 +42,14 @@ final class Test
      */
     public function callCallback(VariationModel $variation): void
     {
-        if (!$this->test->isEnabled()) {
+        if (!$this->experiment->isEnabled()) {
             return;
         }
 
-        $callback = $this->test->getCallback();
+        $callback = $this->experiment->getCallback();
 
         if (is_callable($callback)) {
-            $callback($this->test, $variation);
+            $callback($this->experiment, $variation);
         }
     }
 
@@ -64,7 +64,7 @@ final class Test
             return 0;
         }
 
-        $seed = (int)hexdec(substr(md5($this->test->getName()), 0, 7));
+        $seed = (int)hexdec(substr(md5($this->experiment->getName()), 0, 7));
 
         return $baseSeed - $seed;
     }
@@ -76,7 +76,7 @@ final class Test
      */
     public function getVariationByName(string $name): ?VariationModel
     {
-        $variations = $this->test->getVariations();
+        $variations = $this->experiment->getVariations();
 
         foreach ($variations as $variation) {
             if ($variation->getName() === $name) {
@@ -95,10 +95,10 @@ final class Test
      */
     public function selectVariation(bool $force = false, string $variationName = null): VariationModel
     {
-        $selectedVariation = $this->test->getSelectedVariation();
+        $selectedVariation = $this->experiment->getSelectedVariation();
 
         if ($selectedVariation === null || $force) {
-            $variations = $this->test->getVariations();
+            $variations = $this->experiment->getVariations();
             $selectedVariation = $variationName !== null ? $this->getVariationByName($variationName) : reset($variations);
 
             if ((count($variations) > 1 && $variationName === null) || $selectedVariation === null) {
@@ -118,7 +118,7 @@ final class Test
 
             $this->callCallback($selectedVariation);
 
-            $this->test->setSelectedVariation($selectedVariation);
+            $this->experiment->setSelectedVariation($selectedVariation);
         }
 
         return $selectedVariation;
@@ -131,8 +131,8 @@ final class Test
      */
     private function getRandomBySeed(array $variations): int
     {
-        if ($this->test->getSeed() !== 0) {
-            mt_srand($this->test->getSeed());
+        if ($this->experiment->getSeed() !== 0) {
+            mt_srand($this->experiment->getSeed());
         }
 
         $distributions = array_map(static function ($variation) {

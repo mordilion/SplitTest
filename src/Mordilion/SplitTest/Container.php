@@ -13,9 +13,9 @@ declare(strict_types=1);
 
 namespace Mordilion\SplitTest;
 
-use Mordilion\SplitTest\Facade\Test as TestFacade;
-use Mordilion\SplitTest\Model\Test;
-use Mordilion\SplitTest\Model\Test\Variation;
+use Mordilion\SplitTest\Facade\Experiment as ExperimentFacade;
+use Mordilion\SplitTest\Model\Experiment;
+use Mordilion\SplitTest\Model\Experiment\Variation;
 
 /**
  * @author Henning Huncke <mordilion@gmx.de>
@@ -28,9 +28,9 @@ class Container
     private $seed;
 
     /**
-     * @var Test[]
+     * @var Experiment[]
      */
-    private $tests = [];
+    private $experiments = [];
 
 
     /**
@@ -61,8 +61,8 @@ class Container
                 continue;
             }
 
-            $test = Test::fromString($testString);
-            $instance->addTest($test);
+            $test = Experiment::fromString($testString);
+            $instance->addExperiment($test);
         }
 
         return $instance;
@@ -100,77 +100,77 @@ class Container
     {
         $this->seed = $seed;
 
-        foreach ($this->tests as $test) {
-            $testFacade = new TestFacade($test);
-            $testSeed = $testFacade->generateSeed($this->seed);
+        foreach ($this->experiments as $test) {
+            $experimentFacade = new ExperimentFacade($test);
+            $testSeed = $experimentFacade->generateSeed($this->seed);
 
             $test->setSeed($testSeed);
         }
     }
 
     /**
-     * @param Test $test
+     * @param Experiment $experiment
      */
-    public function addTest(Test $test): void
+    public function addExperiment(Experiment $experiment): void
     {
-        if (empty($test->getVariations())) {
+        if (empty($experiment->getVariations())) {
             throw new \InvalidArgumentException('The provided $test has no Variations.');
         }
 
-        if (array_key_exists($test->getName(), $this->tests)) {
-            throw new \InvalidArgumentException(sprintf('Test with name "%s" already exists.', $test->getName()));
+        if (array_key_exists($experiment->getName(), $this->experiments)) {
+            throw new \InvalidArgumentException(sprintf('Test with name "%s" already exists.', $experiment->getName()));
         }
 
-        $testFacade = new TestFacade($test);
-        $testSeed = $testFacade->generateSeed($this->seed);
-        $test->setSeed($testSeed);
+        $experimentFacade = new ExperimentFacade($experiment);
+        $testSeed = $experimentFacade->generateSeed($this->seed);
+        $experiment->setSeed($testSeed);
 
-        $this->tests[$test->getName()] = $test;
+        $this->experiments[$experiment->getName()] = $experiment;
     }
 
     /**
      * @param string $name
      *
-     * @return Test|null
+     * @return Experiment|null
      */
-    public function getTest(string $name): ?Test
+    public function getExperiment(string $name): ?Experiment
     {
-        return $this->tests[$name] ?? null;
+        return $this->experiments[$name] ?? null;
     }
 
     /**
-     * @param string      $testName
+     * @param string      $experimentName
      * @param string|null $variationName
      *
      * @return Variation|null
      */
-    public function getTestVariation(string $testName, ?string $variationName = null): ?Variation
+    public function getExperimentVariation(string $experimentName, ?string $variationName = null): ?Variation
     {
-        $test = $this->getTest($testName);
+        $test = $this->getExperiment($experimentName);
 
         if ($test === null) {
             return null;
         }
 
-        $testFacade = new TestFacade($test);
+        $experimentFacade = new ExperimentFacade($test);
 
-        return $testFacade->selectVariation(false, $variationName);
+        return $experimentFacade->selectVariation(false, $variationName);
     }
 
     /**
-     * @return Test[]
+     * @return Experiment[]
      */
-    public function getTests(): array
+    public function getExperiments(): array
     {
-        return $this->tests;
+        return $this->experiments;
     }
 
     /**
-     * @param Test[] $tests
+     * @param Experiment[] $experiments
      */
-    public function setTests(array $tests): void
+    public function setExperiments(array $experiments): void
     {
-        $this->tests = $tests;
+        $this->experiments = $experiments;
     }
 
     /**
@@ -178,22 +178,22 @@ class Container
      */
     public function toString(): string
     {
-        $tests = [];
+        $experiments = [];
 
-        /** @var Test $test */
-        foreach ($this->getTests() as $test) {
-            $testFacade = new TestFacade($test);
+        /** @var Experiment $experiment */
+        foreach ($this->getExperiments() as $experiment) {
+            $experimentFacade = new ExperimentFacade($experiment);
             /** @var Variation $variation */
-            $variation = $testFacade->selectVariation();
+            $variation = $experimentFacade->selectVariation();
 
-            $testName = urlencode($test->getName()) ;
+            $experimentName = urlencode($experiment->getName()) ;
             $variationName = urlencode($variation->getName());
 
-            $tests[] = $testName . ':' . $test->getSeed() . ':' . (int) $test->isEnabled()
+            $experiments[] = $experimentName . ':' . $experiment->getSeed() . ':' . (int) $experiment->isEnabled()
                 . '=' . $variationName . ':' . $variation->getDistribution();
         }
 
-        return implode('|', $tests);
+        return implode('|', $experiments);
     }
 
     /**
