@@ -158,11 +158,29 @@ class Container
     }
 
     /**
+     * @param mixed[] $groups
+     *
      * @return Experiment[]
      */
-    public function getExperiments(): array
+    public function getExperiments(array $groups = []): array
     {
-        return $this->experiments;
+        if (empty($groups)) {
+            return $this->experiments;
+        }
+
+        $experiments = [];
+
+        foreach ($this->experiments as $key => $experiment) {
+            foreach ($groups as $group) {
+                if (!$experiment->hasGroup($group)) {
+                    continue;
+                }
+
+                $experiments[$key] = $experiment;
+            }
+        }
+
+        return $experiments;
     }
 
     /**
@@ -180,17 +198,16 @@ class Container
     {
         $experiments = [];
 
-        /** @var Experiment $experiment */
         foreach ($this->getExperiments() as $experiment) {
             $experimentFacade = new ExperimentFacade($experiment);
-            /** @var Variation $variation */
             $variation = $experimentFacade->selectVariation();
 
             $experimentName = urlencode($experiment->getName()) ;
             $variationName = urlencode($variation->getName());
+            $groups = count($experiment->getGroups()) > 0 ? ':' . implode(',', $experiment->getGroups()) : '';
 
             $experiments[] = $experimentName . ':' . $experiment->getSeed() . ':' . (int) $experiment->isEnabled()
-                . '=' . $variationName . ':' . $variation->getDistribution();
+                . $groups . '=' . $variationName . ':' . $variation->getDistribution();
         }
 
         return implode('|', $experiments);

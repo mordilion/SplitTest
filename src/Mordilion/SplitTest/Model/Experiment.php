@@ -20,7 +20,7 @@ use Mordilion\SplitTest\Model\Experiment\Variation;
  */
 final class Experiment
 {
-    private const FROM_STRING_PATTERN = '/([\w\s_-]+)\:(-?\d+)\:(1|0)\=((([\w\s_-]+)(\:\d+),?)(?5)*)/';
+    private const FROM_STRING_PATTERN = '/([\w\s\_\-]+)\:(-?\d+)\:(1|0)(\:([\w\s\_\-\,]+))?\=((([\w\s\_\-]+)(\:\d+),?)(?7)*)/';
 
 
     /**
@@ -32,6 +32,11 @@ final class Experiment
      * @var bool
      */
     private $enabled;
+
+    /**
+     * @var array
+     */
+    private $groups;
 
     /**
      * @var int
@@ -59,21 +64,23 @@ final class Experiment
      *
      * @param string        $name
      * @param bool          $enabled
+     * @param array         $groups
      * @param int           $seed
      * @param array         $variations
      * @param callable|null $callback
      */
-    public function __construct(string $name, bool $enabled = false, int $seed = 0, array $variations = [], ?callable $callback = null)
+    public function __construct(string $name, bool $enabled = false, array $groups = [], int $seed = 0, array $variations = [], ?callable $callback = null)
     {
         $this->name = $name;
         $this->enabled = $enabled;
+        $this->groups = $groups;
         $this->seed = $seed;
         $this->variations = $variations;
         $this->callback = $callback;
     }
 
     /**
-     * @param string $string Format: "test_1:423:1=var_a:1,var_b:1,..." > "name:seed=variation:weight,variation:weight,..."
+     * @param string $string Format: "test_1:423:1:g1,g2,g3=var_a:1,var_b:1,..." > "name:seed:enabled[:groups]=variation:weight,variation:weight,..."
      *
      * @return Experiment
      */
@@ -88,9 +95,10 @@ final class Experiment
         $name = $matches[1];
         $seed = (int) $matches[2];
         $enabled = filter_var($matches[3], FILTER_VALIDATE_BOOLEAN);
-        $variations = Variation::collectionFromString($matches[4]);
+        $groups = explode(',', $matches[5] ?? '') ?: [];
+        $variations = Variation::collectionFromString($matches[6]);
 
-        return new self($name, $enabled, $seed, $variations);
+        return new self($name, $enabled, $groups, $seed, $variations);
     }
 
     /**
@@ -107,6 +115,44 @@ final class Experiment
     public function isEnabled(): bool
     {
         return $this->enabled;
+    }
+
+    /**
+     * @param mixed $group
+     */
+    public function addGroup($group): void
+    {
+        $this->groups[] = $group;
+    }
+
+    /**
+     * @return array
+     */
+    public function getGroups(): array
+    {
+        return $this->groups;
+    }
+
+    /**
+     * @param $group
+     *
+     * @return bool
+     */
+    public function hasGroup($group): bool
+    {
+        return in_array($group, $this->groups, true);
+    }
+
+    /**
+     * @param mixed $group
+     */
+    public function removeGroup($group): void
+    {
+        $key = array_search($group, $this->groups, true);
+
+        if ($key !== false) {
+            unset($this->groups[$key]);
+        }
     }
 
     /**

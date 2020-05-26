@@ -103,11 +103,14 @@ class ContainerTest extends TestCase
 
     public function testContainerCanBeCreatedFromString()
     {
-        $string = 'First+Test:1478982179:1=Version+C:1|Second+Test:1344290232:0=Version+B:1';
+        $string = 'First+Test:1478982179:1:g1,g2,g3=Version+C:1|Second+Test:1344290232:0:g2=Version+B:1';
 
         $container = Container::fromString(urldecode($string));
 
         $this->assertCount(2, $container->getExperiments());
+        $this->assertCount(2, $container->getExperiments(['g2']));
+        $this->assertCount(1, $container->getExperiments(['g1']));
+        $this->assertCount(1, $container->getExperiments(['g3']));
 
         foreach ($container->getExperiments() as $test) {
             $this->assertCount(1, $test->getVariations());
