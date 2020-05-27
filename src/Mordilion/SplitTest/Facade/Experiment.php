@@ -116,8 +116,11 @@ final class Experiment
                 }
             }
 
-            $this->callCallback($selectedVariation);
+            if ($selectedVariation === null) {
+                throw new \RuntimeException('Cannot select a Variation.');
+            }
 
+            $this->callCallback($selectedVariation);
             $this->experiment->setSelectedVariation($selectedVariation);
         }
 

@@ -192,13 +192,15 @@ class Container
     }
 
     /**
+     * @param mixed[] $groups
+     *
      * @return string
      */
-    public function toString(): string
+    public function toString(array $groups = []): string
     {
         $experiments = [];
 
-        foreach ($this->getExperiments() as $experiment) {
+        foreach ($this->getExperiments($groups) as $experiment) {
             $experimentFacade = new ExperimentFacade($experiment);
             $variation = $experimentFacade->selectVariation();
 

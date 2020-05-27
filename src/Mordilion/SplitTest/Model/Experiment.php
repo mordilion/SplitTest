@@ -134,7 +134,7 @@ final class Experiment
     }
 
     /**
-     * @param $group
+     * @param mixed $group
      *
      * @return bool
      */
