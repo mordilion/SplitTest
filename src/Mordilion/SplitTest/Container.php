@@ -159,10 +159,11 @@ class Container
 
     /**
      * @param mixed[] $groups
+     * @param bool    $mustMatchAll
      *
      * @return Experiment[]
      */
-    public function getExperiments(array $groups = []): array
+    public function getExperiments(array $groups = [], bool $mustMatchAll = false): array
     {
         if (empty($groups)) {
             return $this->experiments;
@@ -171,11 +172,9 @@ class Container
         $experiments = [];
 
         foreach ($this->experiments as $key => $experiment) {
-            foreach ($groups as $group) {
-                if (!$experiment->hasGroup($group)) {
-                    continue;
-                }
+            $intersect = array_intersect($groups, $experiment->getGroups());
 
+            if ((!$mustMatchAll && count($intersect) > 0) || ($mustMatchAll && count($intersect) === count($groups))) {
                 $experiments[$key] = $experiment;
             }
         }

@@ -119,6 +119,13 @@ class ContainerTest extends TestCase
         foreach ($container->getExperiments() as $test) {
             $this->assertCount(1, $test->getVariations());
         }
+
+        $experiments = $container->getExperiments(['g1', 'g2'], false);
+        $this->assertCount(2, $experiments);
+
+        $experiments = $container->getExperiments(['g1', 'g2'], true);
+        $this->assertCount(1, $experiments);
+        $this->assertEquals('First-Test', array_values($experiments)[0]->getName());
     }
 
     public function testContainerProvidesRightTestVariation()
