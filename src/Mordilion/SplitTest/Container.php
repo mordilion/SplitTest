@@ -192,23 +192,24 @@ class Container
 
     /**
      * @param mixed[] $groups
+     * @param bool    $mustMatchAll
      *
      * @return string
      */
-    public function toString(array $groups = []): string
+    public function toString(array $groups = [], bool $mustMatchAll = false): string
     {
         $experiments = [];
 
-        foreach ($this->getExperiments($groups) as $experiment) {
+        foreach ($this->getExperiments($groups, $mustMatchAll) as $experiment) {
             $experimentFacade = new ExperimentFacade($experiment);
             $variation = $experimentFacade->selectVariation();
 
             $experimentName = urlencode($experiment->getName()) ;
             $variationName = urlencode($variation->getName());
-            $groups = count($experiment->getGroups()) > 0 ? ':' . implode(',', $experiment->getGroups()) : '';
+            $groupsAsString = count($experiment->getGroups()) > 0 ? ':' . implode(',', $experiment->getGroups()) : '';
 
             $experiments[] = $experimentName . ':' . $experiment->getSeed() . ':' . (int) $experiment->isEnabled()
-                . $groups . '=' . $variationName . ':' . $variation->getDistribution();
+                . $groupsAsString . '=' . $variationName . ':' . $variation->getDistribution();
         }
 
         return implode('|', $experiments);
