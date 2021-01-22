@@ -40,8 +40,8 @@ final class Variation
      */
     public function __construct(string $name, int $distribution = 1)
     {
-        if ($distribution < 1 || $distribution > 100) {
-            throw new \InvalidArgumentException('The provided $distribution must be a value between 1 and 100.');
+        if ($distribution < 0 || $distribution > 100) {
+            throw new \InvalidArgumentException('The provided $distribution must be a value between 0 and 100.');
         }
 
         $this->name = $name;

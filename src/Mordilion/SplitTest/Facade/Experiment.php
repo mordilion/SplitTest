@@ -101,11 +101,15 @@ final class Experiment
             $variations = $this->experiment->getVariations();
             $selectedVariation = $variationName !== null ? $this->getVariationByName($variationName) : reset($variations);
 
-            if ((count($variations) > 1 && $variationName === null) || $selectedVariation === null) {
+            if ($selectedVariation === null || (count($variations) > 1 && $variationName === null)) {
                 $random = $this->getRandomBySeed($variations);
                 $distribution = 0;
 
                 foreach ($variations as $variation) {
+                    if ($variation->getDistribution() === 0) {
+                        continue;
+                    }
+                    
                     $distribution += $variation->getDistribution();
 
                     if ($random <= $distribution) {
@@ -138,11 +142,10 @@ final class Experiment
             mt_srand($this->experiment->getSeed());
         }
 
-        $distributions = array_map(static function ($variation) {
-            /** @var VariationModel $variation */
+        $distributions = array_map(static function (VariationModel $variation) {
             return $variation->getDistribution();
         }, $variations);
 
-        return mt_rand(1, (int) array_sum($distributions));
+        return mt_rand(0, (int) array_sum($distributions));
     }
 }
