@@ -14,6 +14,21 @@ use PHPUnit\Framework\TestCase;
  */
 class ExperimentTest extends TestCase
 {
+    public function testExperimentHasVariationWithZeorDistribution()
+    {
+        $test = new Experiment('test-test', true);
+        $test->addVariation(new Variation('A', 0));
+        $test->addVariation(new Variation('B'));
+
+        $facade = new ExperimentFacade($test);
+
+        for ($i = 1; $i <= 100; $i++) {
+            $test->setSeed($i);
+            $selectedVariation = $facade->selectVariation(true);
+            $this->assertEquals('B', $selectedVariation->getName());
+        }
+    }
+
     public function testTestSelectsEveryTimeTheSameVariationBasedOnProvidedSeed()
     {
         $seed1 = 123456789;
