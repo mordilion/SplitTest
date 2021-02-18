@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Mordilion\SplitTest;
 
+use Mordilion\SplitTest\Chooser\RandomChooser;
+use Mordilion\SplitTest\Chooser\StaticChooser;
 use Mordilion\SplitTest\Facade\Experiment as ExperimentFacade;
 use Mordilion\SplitTest\Model\Experiment;
 use Mordilion\SplitTest\Model\Experiment\Variation;
@@ -20,7 +22,7 @@ class ExperimentTest extends TestCase
         $test->addVariation(new Variation('A', 0));
         $test->addVariation(new Variation('B'));
 
-        $facade = new ExperimentFacade($test);
+        $facade = new ExperimentFacade($test, new StaticChooser('B'));
 
         for ($i = 1; $i <= 100; $i++) {
             $test->setSeed($i);
@@ -36,26 +38,26 @@ class ExperimentTest extends TestCase
         $seed3 = time();
 
         $test = new Experiment('test-test', true);
-        $experimentFacade = new ExperimentFacade($test);
+        $experimentFacade = new ExperimentFacade($test, new RandomChooser());
 
         for ($i = 1; $i < 1000; $i++) { // make it hard!
             $test->addVariation(new Variation((string) $i));
         }
 
         $test->setSeed($seed1);
-        $seedVariation1 = $experimentFacade->selectVariation();
-        $seedVariation2 = $experimentFacade->selectVariation();
+        $seedVariation1 = $experimentFacade->selectVariation(true);
+        $seedVariation2 = $experimentFacade->selectVariation(true);
 
         $this->assertSame($seedVariation1->getName(), $seedVariation2->getName());
 
         $test->setSeed($seed2);
         $seedVariation1 = $experimentFacade->selectVariation();
-        $seedVariation2 = $experimentFacade->selectVariation();
+        $seedVariation2 = $experimentFacade->selectVariation(true);
 
         $this->assertSame($seedVariation1->getName(), $seedVariation2->getName());
 
         $test->setSeed($seed3);
-        $seedVariation1 = $experimentFacade->selectVariation();
+        $seedVariation1 = $experimentFacade->selectVariation(true);
         $seedVariation2 = $experimentFacade->selectVariation();
 
         $this->assertSame($seedVariation1->getName(), $seedVariation2->getName());
@@ -64,7 +66,7 @@ class ExperimentTest extends TestCase
     public function testTestSelectsEachTimeTheSameVariationIfThereIsOnlyOneVariation()
     {
         $test = new Experiment('test-test', true);
-        $experimentFacade = new ExperimentFacade($test);
+        $experimentFacade = new ExperimentFacade($test, new RandomChooser());
 
         $variationA = new Variation('A');
         $test->addVariation($variationA);
@@ -73,7 +75,49 @@ class ExperimentTest extends TestCase
         $test->addVariation($variationB);
 
         for ($i = 1; $i <= 1000; $i++) {
-            $this->assertSame($variationB, $experimentFacade->selectVariation(false, 'B'));
+            $this->assertSame($variationB, $experimentFacade->selectVariation(true, 'B'));
         }
+    }
+
+    public function testExperimentWithAZeroDsitributionVariation()
+    {
+        $test = new Experiment('test-test', true);
+        $experimentFacade = new ExperimentFacade($test, new RandomChooser());
+
+        $variationA = new Variation('A', 0);
+        $test->addVariation($variationA);
+
+        $variationB = new Variation('B', 100);
+        $test->addVariation($variationB);
+
+        for ($i = 0; $i <= 1000; $i++) {
+            $test->setSeed($i);
+            $this->assertSame($variationB, $experimentFacade->selectVariation(true, 'B'));
+        }
+    }
+
+    public function testExperimentDistribution()
+    {
+        $test = new Experiment('test-test', true);
+        $test->addVariation(new Variation('A', 80));
+        $test->addVariation(new Variation('B', 20));
+
+        $facade = new ExperimentFacade($test, new RandomChooser());
+        $counts = [
+            'A' => 0,
+            'B' => 0,
+        ];
+
+        $start = 987654;
+
+        for ($i = $start; $i < $start + 10000; $i++) {
+            $test->setSeed($i);
+            $selectedVariation = $facade->selectVariation(true);
+
+            $counts[$selectedVariation->getName()]++;
+        }
+
+        $this->assertEquals(80, round($counts['A'] / (($counts['B'] + $counts['A']) / 100)));
+        $this->assertEquals(20, round($counts['B'] / (($counts['B'] + $counts['A']) / 100)));
     }
 }

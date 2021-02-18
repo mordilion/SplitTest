@@ -139,4 +139,26 @@ class ContainerTest extends TestCase
             $this->assertSame($variation, $container->getExperimentVariation('Test'));
         }
     }
+
+    public function testContainerDistribution()
+    {
+        $counts = [
+            'A' => 0,
+            'B' => 0,
+        ];
+
+        $start = 987654;
+
+        for ($i = $start; $i < $start + 10000; $i++) {
+            $string = '0007:1234567:1=A:80,B:20';
+
+            $container = Container::fromString(urldecode($string), $i);
+            $variation = $container->getExperimentVariation('0007');
+
+            $counts[$variation->getName()]++;
+        }
+
+        $this->assertEquals(80, round($counts['A'] / (($counts['B'] + $counts['A']) / 100)));
+        $this->assertEquals(20, round($counts['B'] / (($counts['B'] + $counts['A']) / 100)));
+    }
 }

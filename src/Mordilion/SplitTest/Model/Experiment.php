@@ -169,6 +169,8 @@ final class Experiment
     public function setSeed(int $seed): void
     {
         $this->seed = $seed;
+
+        $this->setSelectedVariation(null);
     }
 
     /**

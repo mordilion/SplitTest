@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Mordilion\SplitTest\Facade;
 
+use Mordilion\SplitTest\Chooser\ChooserInterface;
+use Mordilion\SplitTest\Chooser\RandomChooser;
 use Mordilion\SplitTest\Model\Experiment as ExperimentModel;
 use Mordilion\SplitTest\Model\Experiment\Variation as VariationModel;
 
@@ -22,6 +24,11 @@ use Mordilion\SplitTest\Model\Experiment\Variation as VariationModel;
 final class Experiment
 {
     /**
+     * @var ChooserInterface
+     */
+    private $chooser;
+
+    /**
      * @var ExperimentModel
      */
     private $experiment;
@@ -30,11 +37,13 @@ final class Experiment
     /**
      * Test constructor.
      *
-     * @param ExperimentModel $experiment
+     * @param ExperimentModel  $experiment
+     * @param ChooserInterface $chooser
      */
-    public function __construct(ExperimentModel $experiment)
+    public function __construct(ExperimentModel $experiment, ChooserInterface $chooser)
     {
         $this->experiment = $experiment;
+        $this->chooser = $chooser;
     }
 
     /**
@@ -64,9 +73,9 @@ final class Experiment
             return 0;
         }
 
-        $seed = (int)hexdec(substr(md5($this->experiment->getName()), 0, 7));
+        $seed = (int) hexdec(substr(md5($this->experiment->getName()), 0, 7));
 
-        return $baseSeed - $seed;
+        return max($baseSeed, $seed) - min($baseSeed, $seed);
     }
 
     /**
@@ -102,22 +111,7 @@ final class Experiment
             $selectedVariation = $variationName !== null ? $this->getVariationByName($variationName) : reset($variations);
 
             if ($selectedVariation === null || (count($variations) > 1 && $variationName === null)) {
-                $random = $this->getRandomBySeed($variations);
-                $distribution = 0;
-
-                foreach ($variations as $variation) {
-                    if ($variation->getDistribution() === 0) {
-                        continue;
-                    }
-                    
-                    $distribution += $variation->getDistribution();
-
-                    if ($random <= $distribution) {
-                        $selectedVariation = $variation;
-
-                        break;
-                    }
-                }
+                $selectedVariation = $this->chooser->choose($this->experiment);
             }
 
             if ($selectedVariation === null) {
@@ -129,23 +123,5 @@ final class Experiment
         }
 
         return $selectedVariation;
-    }
-
-    /**
-     * @param VariationModel[] $variations
-     *
-     * @return int
-     */
-    private function getRandomBySeed(array $variations): int
-    {
-        if ($this->experiment->getSeed() !== 0) {
-            mt_srand($this->experiment->getSeed());
-        }
-
-        $distributions = array_map(static function (VariationModel $variation) {
-            return $variation->getDistribution();
-        }, $variations);
-
-        return mt_rand(0, (int) array_sum($distributions));
     }
 }

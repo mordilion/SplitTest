@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Mordilion\SplitTest;
 
+use Mordilion\SplitTest\Chooser\BalancedChooser;
+use Mordilion\SplitTest\Chooser\ChooserInterface;
 use Mordilion\SplitTest\Facade\Experiment as ExperimentFacade;
 use Mordilion\SplitTest\Model\Experiment;
 use Mordilion\SplitTest\Model\Experiment\Variation;
@@ -23,23 +25,31 @@ use Mordilion\SplitTest\Model\Experiment\Variation;
 class Container
 {
     /**
-     * @var int
+     * @var ChooserInterface
      */
-    private $seed;
+    private $chooser;
 
     /**
      * @var Experiment[]
      */
     private $experiments = [];
 
+    /**
+     * @var int
+     */
+    private $seed;
+
 
     /**
      * Container constructor.
      *
-     * @param int $seed
+     * @param int                   $seed
+     * @param ChooserInterface|null $chooser
      */
-    public function __construct(int $seed = 0)
+    public function __construct(int $seed = 0, ?ChooserInterface $chooser = null)
     {
+        $this->chooser = $chooser ?? new BalancedChooser();
+
         $this->setSeed($seed);
     }
 
@@ -86,26 +96,19 @@ class Container
     }
 
     /**
-     * @return int
+     * @return ChooserInterface
      */
-    public function getSeed(): int
+    public function getChooser(): ChooserInterface
     {
-        return $this->seed;
+        return $this->chooser;
     }
 
     /**
-     * @param int $seed
+     * @param ChooserInterface $chooser
      */
-    public function setSeed(int $seed): void
+    public function setChooser(ChooserInterface $chooser): void
     {
-        $this->seed = $seed;
-
-        foreach ($this->experiments as $test) {
-            $experimentFacade = new ExperimentFacade($test);
-            $testSeed = $experimentFacade->generateSeed($this->seed);
-
-            $test->setSeed($testSeed);
-        }
+        $this->chooser = $chooser;
     }
 
     /**
@@ -121,7 +124,7 @@ class Container
             throw new \InvalidArgumentException(sprintf('Test with name "%s" already exists.', $experiment->getName()));
         }
 
-        $experimentFacade = new ExperimentFacade($experiment);
+        $experimentFacade = new ExperimentFacade($experiment, $this->getChooser());
         $testSeed = $experimentFacade->generateSeed($this->seed);
         $experiment->setSeed($testSeed);
 
@@ -152,7 +155,7 @@ class Container
             return null;
         }
 
-        $experimentFacade = new ExperimentFacade($test);
+        $experimentFacade = new ExperimentFacade($test, $this->getChooser());
 
         return $experimentFacade->selectVariation(false, $variationName);
     }
@@ -191,6 +194,29 @@ class Container
     }
 
     /**
+     * @return int
+     */
+    public function getSeed(): int
+    {
+        return $this->seed;
+    }
+
+    /**
+     * @param int $seed
+     */
+    public function setSeed(int $seed): void
+    {
+        $this->seed = $seed;
+
+        foreach ($this->experiments as $test) {
+            $experimentFacade = new ExperimentFacade($test, $this->getChooser());
+            $testSeed = $experimentFacade->generateSeed($this->seed);
+
+            $test->setSeed($testSeed);
+        }
+    }
+
+    /**
      * @param mixed[] $groups
      * @param bool    $mustMatchAll
      *
@@ -201,7 +227,7 @@ class Container
         $experiments = [];
 
         foreach ($this->getExperiments($groups, $mustMatchAll) as $experiment) {
-            $experimentFacade = new ExperimentFacade($experiment);
+            $experimentFacade = new ExperimentFacade($experiment, $this->getChooser());
             $variation = $experimentFacade->selectVariation();
 
             $experimentName = urlencode($experiment->getName()) ;
