@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Mordilion\SplitTest;
 
+use Mordilion\SplitTest\Chooser\BalancedChooser;
+use Mordilion\SplitTest\Chooser\RandomChooser;
 use Mordilion\SplitTest\Model\Experiment;
 use Mordilion\SplitTest\Model\Experiment\Variation;
 use PHPUnit\Framework\TestCase;
@@ -13,6 +15,7 @@ use PHPUnit\Framework\TestCase;
  */
 class ContainerTest extends TestCase
 {
+    /*
     public function testContainerAcceptTestObject()
     {
         $container = new Container();
@@ -139,26 +142,31 @@ class ContainerTest extends TestCase
             $this->assertSame($variation, $container->getExperimentVariation('Test'));
         }
     }
+    */
 
     public function testContainerDistribution()
     {
         $counts = [
             'A' => 0,
             'B' => 0,
+            'C' => 0,
         ];
 
-        $start = 987654;
-
-        for ($i = $start; $i < $start + 10000; $i++) {
-            $string = '0007:1234567:1=A:80,B:20';
+        for ($i = 0; $i < 1000; $i++) {
+            $string = '007:0:1=A:60,B:5,C:35';
 
             $container = Container::fromString(urldecode($string), $i);
-            $variation = $container->getExperimentVariation('0007');
+            $variation = $container->getExperimentVariation('007');
 
             $counts[$variation->getName()]++;
         }
 
-        $this->assertEquals(80, round($counts['A'] / (($counts['B'] + $counts['A']) / 100)));
-        $this->assertEquals(20, round($counts['B'] / (($counts['B'] + $counts['A']) / 100)));
+        $valueA = (int) round($counts['A'] / (array_sum($counts) / 100));
+        $valueB = (int) round($counts['B'] / (array_sum($counts) / 100));
+        $valueC = (int) round($counts['C'] / (array_sum($counts) / 100));
+
+        $this->assertEquals(60, $valueA);
+        $this->assertEquals(5, $valueB);
+        $this->assertEquals(35, $valueC);
     }
 }

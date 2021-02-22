@@ -30,7 +30,7 @@ final class BalancedChooser implements ChooserInterface
     {
         $index = $this->getIndexBySeed($experiment);
 
-        return $experiment->getVariations()[$index];
+        return $experiment->getVariations()[$index] ?? null;
     }
 
     /**
@@ -44,12 +44,13 @@ final class BalancedChooser implements ChooserInterface
             return $variation->getDistribution();
         }, $experiment->getVariations());
 
+        asort($distributions);
         $total = (int) array_sum($distributions);
         $seedPercentage = ($experiment->getSeed() % 100) + 1;
-        asort($distributions);
+        $percentage = 0;
 
         foreach ($distributions as $index => $distribution) {
-            $percentage = $distribution / ($total / 100);
+            $percentage += $distribution / $total * 100;
 
             if ($seedPercentage <= $percentage) {
                 return $index;
