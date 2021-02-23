@@ -51,7 +51,7 @@ final class Experiment
     /**
      * @var Variation[]
      */
-    private $variations;
+    private $variations = [];
 
     /**
      * @var Variation|null
@@ -66,7 +66,7 @@ final class Experiment
      * @param bool          $enabled
      * @param array         $groups
      * @param int           $seed
-     * @param array         $variations
+     * @param Variation[]   $variations
      * @param callable|null $callback
      */
     public function __construct(string $name, bool $enabled = false, array $groups = [], int $seed = 0, array $variations = [], ?callable $callback = null)
@@ -75,8 +75,11 @@ final class Experiment
         $this->enabled = $enabled;
         $this->groups = $groups;
         $this->seed = $seed;
-        $this->variations = $variations;
         $this->callback = $callback;
+
+        foreach ($variations as $variation) {
+            $this->addVariation($variation);
+        }
     }
 
     /**

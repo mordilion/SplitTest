@@ -36,9 +36,9 @@ final class BalancedChooser implements ChooserInterface
     /**
      * @param Experiment $experiment
      *
-     * @return int
+     * @return int|string
      */
-    private function getIndexBySeed(Experiment $experiment): int
+    private function getIndexBySeed(Experiment $experiment)
     {
         $distributions = array_map(static function (Variation $variation) {
             return $variation->getDistribution();
@@ -57,6 +57,8 @@ final class BalancedChooser implements ChooserInterface
             }
         }
 
-        return 0;
+        $keys = array_keys($experiment->getVariations());
+
+        return reset($keys);
     }
 }

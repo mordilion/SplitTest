@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Mordilion\SplitTest;
 
-use Mordilion\SplitTest\Chooser\BalancedChooser;
-use Mordilion\SplitTest\Chooser\RandomChooser;
 use Mordilion\SplitTest\Model\Experiment;
 use Mordilion\SplitTest\Model\Experiment\Variation;
 use PHPUnit\Framework\TestCase;
