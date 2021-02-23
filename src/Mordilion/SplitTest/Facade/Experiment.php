@@ -73,7 +73,7 @@ final class Experiment
             return 0;
         }
 
-        $seed = (int) hexdec(substr(md5($this->experiment->getName()), 0, 7));
+        $seed = (int) hexdec(substr(md5($this->experiment->getName()), 0, 10));
 
         return max($baseSeed, $seed) - min($baseSeed, $seed);
     }

@@ -15,7 +15,6 @@ use PHPUnit\Framework\TestCase;
  */
 class ContainerTest extends TestCase
 {
-    /*
     public function testContainerAcceptTestObject()
     {
         $container = new Container();
@@ -142,7 +141,6 @@ class ContainerTest extends TestCase
             $this->assertSame($variation, $container->getExperimentVariation('Test'));
         }
     }
-    */
 
     public function testContainerDistribution()
     {
@@ -159,6 +157,35 @@ class ContainerTest extends TestCase
             $variation = $container->getExperimentVariation('007');
 
             $counts[$variation->getName()]++;
+        }
+
+        $valueA = (int) round($counts['A'] / (array_sum($counts) / 100));
+        $valueB = (int) round($counts['B'] / (array_sum($counts) / 100));
+        $valueC = (int) round($counts['C'] / (array_sum($counts) / 100));
+
+        $this->assertEquals(60, $valueA);
+        $this->assertEquals(5, $valueB);
+        $this->assertEquals(35, $valueC);
+    }
+
+    public function testContainerDistributionWithSeedsFile()
+    {
+        $counts = [
+            'A' => 0,
+            'B' => 0,
+            'C' => 0,
+        ];
+
+        if ($fh = fopen(__DIR__ . '/seeds.txt', 'rb')) {
+            while (!feof($fh)) {
+                $seed = (int) fgets($fh, 25);
+                $string = '007:0:1=A:60,B:5,C:35';
+
+                $container = Container::fromString(urldecode($string), $seed);
+                $variation = $container->getExperimentVariation('007');
+
+                $counts[$variation->getName()]++;
+            }
         }
 
         $valueA = (int) round($counts['A'] / (array_sum($counts) / 100));
