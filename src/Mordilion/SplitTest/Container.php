@@ -231,13 +231,11 @@ class Container
     public function getSelectionString(array $groups = [], bool $mustMatchAll = false): string
     {
         $experiments = [];
-        $groupName = count($groups) > 1 ? '' : (string) reset($groups);
+        $groupName = count($groups) > 0 ? (string) reset($groups) : '';
 
         foreach ($this->getExperiments($groups, $mustMatchAll) as $experiment) {
             $experimentFacade = new ExperimentFacade($experiment, $this->getChooser());
-            var_dump($experiment->getVariations($groupName));
             $variation = $experimentFacade->selectVariation($groupName);
-            var_dump($experiment->selectedVariations);
 
             $experimentName = urlencode($experiment->getName()) ;
             $variationName = urlencode($variation->getName());
