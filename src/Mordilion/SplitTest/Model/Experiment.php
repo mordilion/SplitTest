@@ -37,7 +37,7 @@ final class Experiment
     /**
      * @var Group[]
      */
-    private $groups;
+    private $groups = [];
 
     /**
      * @var int
@@ -57,7 +57,7 @@ final class Experiment
     /**
      * @var Variation[]
      */
-    private $selectedVariations = [];
+    public $selectedVariations = [];
 
 
     /**
@@ -106,6 +106,14 @@ final class Experiment
         $variations = Variation::collectionFromString($matches[6]);
 
         return new self($name, $enabled, $groups, $seed, $variations);
+    }
+
+    /**
+     * @return callable|null
+     */
+    public function getCallback(): ?callable
+    {
+        return $this->callback;
     }
 
     /**
@@ -191,15 +199,36 @@ final class Experiment
     {
         $this->seed = $seed;
 
-        $this->setSelectedVariation(null);
+        $this->selectedVariations = [];
     }
 
     /**
-     * @return callable|null
+     * @param string $name
+     *
+     * @return Variation|null
      */
-    public function getCallback(): ?callable
+    public function getSelectedVariation(string $name = ''): ?Variation
     {
-        return $this->callback;
+        $name = empty($name) ? 'default' : $name;
+
+        return $this->selectedVariations[$name] ?? null;
+    }
+
+    /**
+     * @param Variation|null $selectedVariation
+     * @param string         $name
+     */
+    public function setSelectedVariation(?Variation $selectedVariation, string $name = ''): void
+    {
+        $name = empty($name) ? 'default' : $name;
+
+        if ($selectedVariation instanceof Variation) {
+            $this->selectedVariations[$name] = $selectedVariation;
+
+            return;
+        }
+
+        unset($this->selectedVariations[$name]);
     }
 
     /**
@@ -232,27 +261,19 @@ final class Experiment
     }
 
     /**
-     * @param string $name
-     *
-     * @return Variation|null
+     * @return string
      */
-    public function getSelectedVariation(string $name = 'default'): ?Variation
+    public function __toString(): string
     {
-        return $this->selectedVariations[$name] ?? null;
-    }
+        $result = $this->getName() . ':' . $this->getSeed() . ':' . (int) $this->isEnabled();
+        $groups = $this->getGroups();
 
-    /**
-     * @param Variation|null $selectedVariation
-     * @param string         $name
-     */
-    public function setSelectedVariation(?Variation $selectedVariation, string $name = 'default'): void
-    {
-        if ($selectedVariation instanceof Variation) {
-            $this->selectedVariations[$name] = $selectedVariation;
-
-            return;
+        if (count($groups) > 0) {
+            $result .= ':' . implode(',', $groups);
         }
 
-        unset($this->selectedVariations[$name]);
+        $result .= '=' . implode(',', $this->getVariations());
+
+        return $result;
     }
 }

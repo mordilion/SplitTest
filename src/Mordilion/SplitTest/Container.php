@@ -85,7 +85,7 @@ class Container
      */
     public function deliver(string $cookie = 'SplitTests', string $header = 'X-Split-Tests'): void
     {
-        $deliveryString = $this->toString();
+        $deliveryString = $this->getSelectionString();
 
         if (!empty($cookie)) {
             setcookie($cookie, $deliveryString);
@@ -126,8 +126,11 @@ class Container
         }
 
         $experimentFacade = new ExperimentFacade($experiment, $this->getChooser());
-        $testSeed = $experimentFacade->generateSeed($this->seed);
-        $experiment->setSeed($testSeed);
+
+        if ($this->seed !== 0) {
+            $testSeed = $experimentFacade->generateSeed($this->seed);
+            $experiment->setSeed($testSeed);
+        }
 
         $this->experiments[$experiment->getName()] = $experiment;
     }
@@ -225,28 +228,21 @@ class Container
      *
      * @return string
      */
-    public function toString(array $groups = [], bool $mustMatchAll = false): string
+    public function getSelectionString(array $groups = [], bool $mustMatchAll = false): string
     {
         $experiments = [];
+        $groupName = count($groups) > 1 ? '' : (string) reset($groups);
 
         foreach ($this->getExperiments($groups, $mustMatchAll) as $experiment) {
             $experimentFacade = new ExperimentFacade($experiment, $this->getChooser());
-            $variation = $experimentFacade->selectVariation();
+            var_dump($experiment->getVariations($groupName));
+            $variation = $experimentFacade->selectVariation($groupName);
+            var_dump($experiment->selectedVariations);
 
             $experimentName = urlencode($experiment->getName()) ;
             $variationName = urlencode($variation->getName());
             $groupsAsString = array_map(static function (Group $group) {
-                /* keep for later
-                $variations = array_map(static function (Variation $variation) {
-                    return $variation->getName() . ':' . $variation->getDistribution();
-                }, $group->getVariations());
-
-                return $group->getName() . (count($variations) > 0 ? '(' : '')
-                    . implode(',', $variations) . (count($variations) > 0 ? ')' : '');
-                */
-
                 return $group->getName();
-
             }, $experiment->getGroups());
 
             $groupsAsString = count($groupsAsString) > 0 ? ':' . implode(',', $groupsAsString) : '';
@@ -263,6 +259,6 @@ class Container
      */
     public function __toString(): string
     {
-        return $this->toString();
+        return implode('|', $this->getExperiments());
     }
 }

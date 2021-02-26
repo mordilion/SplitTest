@@ -22,16 +22,17 @@ use Mordilion\SplitTest\Model\Experiment\Variation;
 final class RandomChooser implements ChooserInterface
 {
     /**
-     * @param Experiment $experiment
+     * @param Experiment  $experiment
+     * @param Variation[] $variations
      *
      * @return Variation|null
      */
-    public function choose(Experiment $experiment): ?Variation
+    public function choose(Experiment $experiment, array $variations): ?Variation
     {
-        $random = $this->getRandomBySeed($experiment);
+        $random = $this->getRandomBySeed($experiment, $variations);
         $distribution = 0;
 
-        foreach ($experiment->getVariations() as $variation) {
+        foreach ($variations as $variation) {
             if ($variation->getDistribution() === 0) {
                 continue;
             }
@@ -47,11 +48,12 @@ final class RandomChooser implements ChooserInterface
     }
 
     /**
-     * @param Experiment $experiment
+     * @param Experiment  $experiment
+     * @param Variation[] $variations
      *
      * @return int
      */
-    private function getRandomBySeed(Experiment $experiment): int
+    private function getRandomBySeed(Experiment $experiment, array $variations): int
     {
         if ($experiment->getSeed() !== 0) {
             mt_srand($experiment->getSeed());
@@ -59,7 +61,7 @@ final class RandomChooser implements ChooserInterface
 
         $distributions = array_map(static function (Variation $variation) {
             return $variation->getDistribution();
-        }, $experiment->getVariations());
+        }, $variations);
 
         return mt_rand(1, (int) array_sum($distributions));
     }

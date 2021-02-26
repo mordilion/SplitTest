@@ -103,4 +103,12 @@ final class Variation
     {
         return $this->distribution;
     }
+
+    /**
+     * @return string
+     */
+    public function __toString(): string
+    {
+        return $this->getName() . ':' . $this->getDistribution();
+    }
 }

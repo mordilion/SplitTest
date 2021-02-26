@@ -22,27 +22,29 @@ use Mordilion\SplitTest\Model\Experiment\Variation;
 final class BalancedChooser implements ChooserInterface
 {
     /**
-     * @param Experiment $experiment
+     * @param Experiment  $experiment
+     * @param Variation[] $variations
      *
      * @return Variation|null
      */
-    public function choose(Experiment $experiment): ?Variation
+    public function choose(Experiment $experiment, array $variations): ?Variation
     {
-        $index = $this->getIndexBySeed($experiment);
+        $index = $this->getIndexBySeed($experiment, $variations);
 
-        return $experiment->getVariations()[$index] ?? null;
+        return $variations[$index] ?? null;
     }
 
     /**
-     * @param Experiment $experiment
+     * @param Experiment  $experiment
+     * @param Variation[] $variations
      *
      * @return int|string
      */
-    private function getIndexBySeed(Experiment $experiment)
+    private function getIndexBySeed(Experiment $experiment, array $variations)
     {
         $distributions = array_map(static function (Variation $variation) {
             return $variation->getDistribution();
-        }, $experiment->getVariations());
+        }, $variations);
 
         asort($distributions);
         $total = (int) array_sum($distributions);
@@ -57,7 +59,7 @@ final class BalancedChooser implements ChooserInterface
             }
         }
 
-        $keys = array_keys($experiment->getVariations());
+        $keys = array_keys($variations);
 
         return reset($keys);
     }

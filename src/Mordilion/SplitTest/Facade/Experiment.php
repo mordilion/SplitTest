@@ -106,14 +106,14 @@ final class Experiment
      */
     public function selectVariation(string $groupName = '', string $variationName = '', bool $force = false): VariationModel
     {
-        $selectedVariation = $this->experiment->getSelectedVariation();
+        $selectedVariation = $this->experiment->getSelectedVariation($groupName);
 
         if ($selectedVariation === null || $force) {
             $variations = $this->experiment->getVariations($groupName);
             $selectedVariation = !empty($variationName) ? $this->getVariationByName($variationName) : reset($variations);
 
             if ($selectedVariation === null || (count($variations) > 1 && empty($variationName))) {
-                $selectedVariation = $this->chooser->choose($this->experiment);
+                $selectedVariation = $this->chooser->choose($this->experiment, $variations);
             }
 
             if ($selectedVariation === null) {
@@ -121,7 +121,7 @@ final class Experiment
             }
 
             $this->callCallback($selectedVariation);
-            $this->experiment->setSelectedVariation($selectedVariation, !empty($groupName) ? $groupName : 'default');
+            $this->experiment->setSelectedVariation($selectedVariation, $groupName);
         }
 
         return $selectedVariation;

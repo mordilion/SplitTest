@@ -22,9 +22,10 @@ use Mordilion\SplitTest\Model\Experiment\Variation;
 interface ChooserInterface
 {
     /**
-     * @param Experiment $experiment
+     * @param Experiment  $experiment
+     * @param Variation[] $variations
      *
      * @return Variation|null
      */
-    public function choose(Experiment $experiment): ?Variation;
+    public function choose(Experiment $experiment, array $variations): ?Variation;
 }

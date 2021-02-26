@@ -107,4 +107,19 @@ final class Group
     {
         return $this->variations;
     }
+
+    /**
+     * @return string
+     */
+    public function __toString(): string
+    {
+        $result = $this->getName();
+        $variations = $this->getVariations();
+
+        if (count($variations) > 0) {
+            $result .= '(' . implode(',', $variations) . ')';
+        }
+
+        return $result;
+    }
 }

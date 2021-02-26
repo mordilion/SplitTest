@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mordilion\SplitTest;
 
+use Mordilion\SplitTest\Chooser\StaticChooser;
 use Mordilion\SplitTest\Model\Experiment;
 use Mordilion\SplitTest\Model\Experiment\Variation;
 use PHPUnit\Framework\TestCase;
@@ -206,5 +207,19 @@ class ContainerTest extends TestCase
         $this->assertEquals(1, $experiment->getVariationByName('A', 'g2')->getDistribution());
         $this->assertEquals(1, $experiment->getVariationByName('B', 'g2')->getDistribution());
         $this->assertEquals(1, $experiment->getVariationByName('C', 'g2')->getDistribution());
+    }
+
+    public function testToStringConversion()
+    {
+        $string = 'TEST0001:1478982179:1:g1(A:5,B:4,C:3),g2,g3(A:50,B:2,C:2)=A:1,B:1,C:1|TEST0002:123456:0=A:1,B:1';
+        $selectionString = 'TEST0001:1478982179:1:g1,g2,g3=A:1|TEST0002:123456:0=A:1';
+        $selectionStringG1 = 'TEST0001:1478982179:1:g1,g2,g3=A:5';
+
+        $container = Container::fromString(urldecode($string));
+        $container->setChooser(new StaticChooser('A'));
+
+        $this->assertEquals($string, (string) $container);
+        $this->assertEquals($selectionString, $container->getSelectionString());
+        $this->assertEquals($selectionStringG1, $container->getSelectionString(['g1']));
     }
 }

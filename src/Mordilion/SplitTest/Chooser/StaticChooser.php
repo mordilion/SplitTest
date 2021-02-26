@@ -42,13 +42,13 @@ final class StaticChooser implements ChooserInterface
     }
 
     /**
-     * @param Experiment $experiment
+     * @param Experiment  $experiment
+     * @param Variation[] $variations
      *
      * @return Variation|null
      */
-    public function choose(Experiment $experiment): ?Variation
+    public function choose(Experiment $experiment, array $variations): ?Variation
     {
-        $variations = $experiment->getVariations();
         $variationsNames = array_map(static function (Variation $variation) {
             return $variation->getName();
         }, $variations);

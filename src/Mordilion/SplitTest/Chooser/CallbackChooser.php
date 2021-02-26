@@ -38,13 +38,14 @@ final class CallbackChooser implements ChooserInterface
     }
 
     /**
-     * @param Experiment $experiment
+     * @param Experiment  $experiment
+     * @param Variation[] $variations
      *
      * @return Variation|null
      */
-    public function choose(Experiment $experiment): ?Variation
+    public function choose(Experiment $experiment, array $variations): ?Variation
     {
-        $variation = call_user_func($this->callback, $experiment);
+        $variation = call_user_func($this->callback, $experiment, $variations);
 
         if (!$variation instanceof Variation && $variation !== null) {
             throw new \RuntimeException('The returned value needs to be null or an instance of ' . Variation::class);
