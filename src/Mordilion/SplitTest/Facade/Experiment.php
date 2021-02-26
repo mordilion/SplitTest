@@ -110,7 +110,7 @@ final class Experiment
 
         if ($selectedVariation === null || $force) {
             $variations = $this->experiment->getVariations($groupName);
-            $selectedVariation = !empty($variationName) ? $this->getVariationByName($variationName) : reset($variations);
+            $selectedVariation = !empty($variationName) ? ($variations[$variationName] ?? null) : reset($variations);
 
             if ($selectedVariation === null || (count($variations) > 1 && empty($variationName))) {
                 $selectedVariation = $this->chooser->choose($this->experiment, $variations);
