@@ -120,25 +120,31 @@ class Container
             throw new \InvalidArgumentException('The provided $test has no Variations.');
         }
 
-        if (array_key_exists($experiment->getName(), $this->experiments)) {
-            throw new \InvalidArgumentException(sprintf('Test with name "%s" already exists.', $experiment->getName()));
-        }
-
         $experimentFacade = new ExperimentFacade($experiment, $this->getChooser());
         $testSeed = $experimentFacade->generateSeed($this->seed);
         $experiment->setSeed($testSeed);
 
-        $this->experiments[$experiment->getName()] = $experiment;
+        $this->experiments[] = $experiment;
     }
 
     /**
      * @param string $name
+     * @param array  $groups
+     * @param bool   $mustMatchAll
      *
      * @return Experiment|null
      */
-    public function getExperiment(string $name): ?Experiment
+    public function getExperiment(string $name, array $groups = [], bool $mustMatchAll = false): ?Experiment
     {
-        return $this->experiments[$name] ?? null;
+        $experiments = $this->getExperiments($groups, $mustMatchAll);
+
+        foreach ($experiments as $experiment) {
+            if ($experiment->getName() === $name) {
+                return $experiment;
+            }
+        }
+
+        return null;
     }
 
     /**
