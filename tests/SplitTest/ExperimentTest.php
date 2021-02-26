@@ -26,7 +26,7 @@ class ExperimentTest extends TestCase
 
         for ($i = 1; $i <= 100; $i++) {
             $test->setSeed($i);
-            $selectedVariation = $facade->selectVariation(true);
+            $selectedVariation = $facade->selectVariation('', '', true);
             $this->assertEquals('B', $selectedVariation->getName());
         }
     }
@@ -45,19 +45,19 @@ class ExperimentTest extends TestCase
         }
 
         $test->setSeed($seed1);
-        $seedVariation1 = $experimentFacade->selectVariation(true);
-        $seedVariation2 = $experimentFacade->selectVariation(true);
+        $seedVariation1 = $experimentFacade->selectVariation('', '',true);
+        $seedVariation2 = $experimentFacade->selectVariation('', '',true);
 
         $this->assertSame($seedVariation1->getName(), $seedVariation2->getName());
 
         $test->setSeed($seed2);
         $seedVariation1 = $experimentFacade->selectVariation();
-        $seedVariation2 = $experimentFacade->selectVariation(true);
+        $seedVariation2 = $experimentFacade->selectVariation('', '',true);
 
         $this->assertSame($seedVariation1->getName(), $seedVariation2->getName());
 
         $test->setSeed($seed3);
-        $seedVariation1 = $experimentFacade->selectVariation(true);
+        $seedVariation1 = $experimentFacade->selectVariation('', '',true);
         $seedVariation2 = $experimentFacade->selectVariation();
 
         $this->assertSame($seedVariation1->getName(), $seedVariation2->getName());
@@ -75,7 +75,7 @@ class ExperimentTest extends TestCase
         $test->addVariation($variationB);
 
         for ($i = 1; $i <= 1000; $i++) {
-            $this->assertSame($variationB, $experimentFacade->selectVariation(true, 'B'));
+            $this->assertSame($variationB, $experimentFacade->selectVariation('', 'B',true));
         }
     }
 
@@ -92,7 +92,7 @@ class ExperimentTest extends TestCase
 
         for ($i = 0; $i <= 1000; $i++) {
             $test->setSeed($i);
-            $this->assertSame($variationB, $experimentFacade->selectVariation(true, 'B'));
+            $this->assertSame($variationB, $experimentFacade->selectVariation('', 'B',true));
         }
     }
 
@@ -112,7 +112,7 @@ class ExperimentTest extends TestCase
 
         for ($i = $start; $i < $start + 10000; $i++) {
             $test->setSeed($i);
-            $selectedVariation = $facade->selectVariation(true);
+            $selectedVariation = $facade->selectVariation('', '',true);
 
             $counts[$selectedVariation->getName()]++;
         }

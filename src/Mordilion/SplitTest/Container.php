@@ -17,6 +17,7 @@ use Mordilion\SplitTest\Chooser\BalancedChooser;
 use Mordilion\SplitTest\Chooser\ChooserInterface;
 use Mordilion\SplitTest\Facade\Experiment as ExperimentFacade;
 use Mordilion\SplitTest\Model\Experiment;
+use Mordilion\SplitTest\Model\Experiment\Group;
 use Mordilion\SplitTest\Model\Experiment\Variation;
 
 /**
@@ -120,55 +121,51 @@ class Container
             throw new \InvalidArgumentException('The provided $test has no Variations.');
         }
 
+        if (array_key_exists($experiment->getName(), $this->experiments)) {
+            throw new \InvalidArgumentException(sprintf('Test with name "%s" already exists.', $experiment->getName()));
+        }
+
         $experimentFacade = new ExperimentFacade($experiment, $this->getChooser());
         $testSeed = $experimentFacade->generateSeed($this->seed);
         $experiment->setSeed($testSeed);
 
-        $this->experiments[] = $experiment;
+        $this->experiments[$experiment->getName()] = $experiment;
     }
 
     /**
      * @param string $name
-     * @param array  $groups
-     * @param bool   $mustMatchAll
      *
      * @return Experiment|null
      */
-    public function getExperiment(string $name, array $groups = [], bool $mustMatchAll = false): ?Experiment
+    public function getExperiment(string $name): ?Experiment
     {
-        $experiments = $this->getExperiments($groups, $mustMatchAll);
-
-        foreach ($experiments as $experiment) {
-            if ($experiment->getName() === $name) {
-                return $experiment;
-            }
-        }
-
-        return null;
+        return $this->experiments[$name] ?? null;
     }
 
     /**
-     * @param string      $experimentName
-     * @param string|null $variationName
+     * @param string $experimentName
+     * @param bool   $force
+     * @param string $variationName
+     * @param string $groupName
      *
      * @return Variation|null
      */
-    public function getExperimentVariation(string $experimentName, ?string $variationName = null): ?Variation
+    public function getExperimentVariation(string $experimentName, bool $force = false, string $variationName = '', string $groupName = ''): ?Variation
     {
-        $test = $this->getExperiment($experimentName);
+        $experiment = $this->getExperiment($experimentName);
 
-        if ($test === null) {
+        if ($experiment === null) {
             return null;
         }
 
-        $experimentFacade = new ExperimentFacade($test, $this->getChooser());
+        $experimentFacade = new ExperimentFacade($experiment, $this->getChooser());
 
-        return $experimentFacade->selectVariation(false, $variationName);
+        return $experimentFacade->selectVariation($groupName, $variationName, $force);
     }
 
     /**
-     * @param mixed[] $groups
-     * @param bool    $mustMatchAll
+     * @param string[] $groups
+     * @param bool     $mustMatchAll
      *
      * @return Experiment[]
      */
@@ -181,9 +178,9 @@ class Container
         $experiments = [];
 
         foreach ($this->experiments as $key => $experiment) {
-            $intersect = array_intersect($groups, $experiment->getGroups());
+            $experimentGroups = $experiment->getGroups($groups);
 
-            if ((!$mustMatchAll && count($intersect) > 0) || ($mustMatchAll && count($intersect) === count($groups))) {
+            if ((!$mustMatchAll && count($experimentGroups) > 0) || ($mustMatchAll && count($experimentGroups) === count($groups))) {
                 $experiments[$key] = $experiment;
             }
         }
@@ -238,7 +235,21 @@ class Container
 
             $experimentName = urlencode($experiment->getName()) ;
             $variationName = urlencode($variation->getName());
-            $groupsAsString = count($experiment->getGroups()) > 0 ? ':' . implode(',', $experiment->getGroups()) : '';
+            $groupsAsString = array_map(static function (Group $group) {
+                /* keep for later
+                $variations = array_map(static function (Variation $variation) {
+                    return $variation->getName() . ':' . $variation->getDistribution();
+                }, $group->getVariations());
+
+                return $group->getName() . (count($variations) > 0 ? '(' : '')
+                    . implode(',', $variations) . (count($variations) > 0 ? ')' : '');
+                */
+
+                return $group->getName();
+
+            }, $experiment->getGroups());
+
+            $groupsAsString = count($groupsAsString) > 0 ? ':' . implode(',', $groupsAsString) : '';
 
             $experiments[] = $experimentName . ':' . $experiment->getSeed() . ':' . (int) $experiment->isEnabled()
                 . $groupsAsString . '=' . $variationName . ':' . $variation->getDistribution();

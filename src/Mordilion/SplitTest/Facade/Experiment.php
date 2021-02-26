@@ -80,12 +80,13 @@ final class Experiment
 
     /**
      * @param string $name
+     * @param string $groupName
      *
      * @return VariationModel|null
      */
-    public function getVariationByName(string $name): ?VariationModel
+    public function getVariationByName(string $name, string $groupName = ''): ?VariationModel
     {
-        $variations = $this->experiment->getVariations();
+        $variations = $this->experiment->getVariations($groupName);
 
         foreach ($variations as $variation) {
             if ($variation->getName() === $name) {
@@ -97,20 +98,21 @@ final class Experiment
     }
 
     /**
-     * @param bool        $force
-     * @param string|null $variationName
+     * @param string $groupName
+     * @param string $variationName
+     * @param bool   $force
      *
      * @return VariationModel
      */
-    public function selectVariation(bool $force = false, string $variationName = null): VariationModel
+    public function selectVariation(string $groupName = '', string $variationName = '', bool $force = false): VariationModel
     {
         $selectedVariation = $this->experiment->getSelectedVariation();
 
         if ($selectedVariation === null || $force) {
-            $variations = $this->experiment->getVariations();
-            $selectedVariation = $variationName !== null ? $this->getVariationByName($variationName) : reset($variations);
+            $variations = $this->experiment->getVariations($groupName);
+            $selectedVariation = !empty($variationName) ? $this->getVariationByName($variationName) : reset($variations);
 
-            if ($selectedVariation === null || (count($variations) > 1 && $variationName === null)) {
+            if ($selectedVariation === null || (count($variations) > 1 && empty($variationName))) {
                 $selectedVariation = $this->chooser->choose($this->experiment);
             }
 
@@ -119,7 +121,7 @@ final class Experiment
             }
 
             $this->callCallback($selectedVariation);
-            $this->experiment->setSelectedVariation($selectedVariation);
+            $this->experiment->setSelectedVariation($selectedVariation, !empty($groupName) ? $groupName : 'default');
         }
 
         return $selectedVariation;

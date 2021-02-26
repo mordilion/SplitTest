@@ -177,34 +177,34 @@ class ContainerTest extends TestCase
         $this->assertEquals(35, $valueC);
     }
 
-    public function testGetTheExactExperimentIfThereAremoreWithTheSameName()
+    public function testDifferentDistributionsByGroup()
     {
-        $container = new Container();
+        $string = 'TEST0001:1478982179:1:g1(A:5,B:4,C:3),g2,g3(A:50,B:2,C:2)=A:1,B:1,C:1';
 
-        $test1 = new Experiment('TEST0001', true, ['group_a']);
-        $test1->addVariation(new Variation('A', 50));
-        $test1->addVariation(new Variation('B', 50));
+        $container = Container::fromString(urldecode($string));
 
-        $test2 = new Experiment('TEST0001', true, ['group_b']);
-        $test2->addVariation(new Variation('A', 10));
-        $test2->addVariation(new Variation('B', 90));
+        $experiment = new Facade\Experiment($container->getExperiment('TEST0001'), $container->getChooser());
 
-        $container->addExperiment($test1);
-        $container->addExperiment($test2);
+        $this->assertEquals(1, $experiment->getVariationByName('A')->getDistribution());
+        $this->assertEquals(1, $experiment->getVariationByName('B')->getDistribution());
+        $this->assertEquals(1, $experiment->getVariationByName('C')->getDistribution());
 
-        $experiment = new Facade\Experiment($container->getExperiment('TEST0001', [], true), $container->getChooser());
+        $experiment = new Facade\Experiment($container->getExperiment('TEST0001'), $container->getChooser());
 
-        $this->assertEquals(50, $experiment->getVariationByName('A')->getDistribution());
-        $this->assertEquals(50, $experiment->getVariationByName('B')->getDistribution());
+        $this->assertEquals(5, $experiment->getVariationByName('A', 'g1')->getDistribution());
+        $this->assertEquals(4, $experiment->getVariationByName('B', 'g1')->getDistribution());
+        $this->assertEquals(3, $experiment->getVariationByName('C', 'g1')->getDistribution());
 
-        $experiment = new Facade\Experiment($container->getExperiment('TEST0001', ['group_b'], true), $container->getChooser());
+        $experiment = new Facade\Experiment($container->getExperiment('TEST0001'), $container->getChooser());
 
-        $this->assertEquals(10, $experiment->getVariationByName('A')->getDistribution());
-        $this->assertEquals(90, $experiment->getVariationByName('B')->getDistribution());
+        $this->assertEquals(50, $experiment->getVariationByName('A', 'g3')->getDistribution());
+        $this->assertEquals(2, $experiment->getVariationByName('B', 'g3')->getDistribution());
+        $this->assertEquals(2, $experiment->getVariationByName('C', 'g3')->getDistribution());
 
-        $experiment = new Facade\Experiment($container->getExperiment('TEST0001', ['group_a']), $container->getChooser());
+        $experiment = new Facade\Experiment($container->getExperiment('TEST0001'), $container->getChooser());
 
-        $this->assertEquals(50, $experiment->getVariationByName('A')->getDistribution());
-        $this->assertEquals(50, $experiment->getVariationByName('B')->getDistribution());
+        $this->assertEquals(1, $experiment->getVariationByName('A', 'g2')->getDistribution());
+        $this->assertEquals(1, $experiment->getVariationByName('B', 'g2')->getDistribution());
+        $this->assertEquals(1, $experiment->getVariationByName('C', 'g2')->getDistribution());
     }
 }

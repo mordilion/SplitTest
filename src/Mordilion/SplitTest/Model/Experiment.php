@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Mordilion\SplitTest\Model;
 
+use Mordilion\SplitTest\Model\Experiment\Group;
 use Mordilion\SplitTest\Model\Experiment\Variation;
 
 /**
@@ -20,7 +21,7 @@ use Mordilion\SplitTest\Model\Experiment\Variation;
  */
 final class Experiment
 {
-    private const FROM_STRING_PATTERN = '/([\w\s\_\-]+)\:(-?\d+)\:(1|0)(\:([\w\s\_\-\,]+))?\=((([\w\s\_\-]+)(\:\d+),?)(?7)*)/';
+    private const FROM_STRING_PATTERN = '/([\w\s\_\-]+)\:(-?\d+)\:(1|0)(\:([\w\s\_\-\,\(\)\:]+))?\=((([\w\s\_\-]+)(\:\d+),?)(?7)*)/';
 
 
     /**
@@ -34,7 +35,7 @@ final class Experiment
     private $enabled;
 
     /**
-     * @var array
+     * @var Group[]
      */
     private $groups;
 
@@ -54,9 +55,9 @@ final class Experiment
     private $variations = [];
 
     /**
-     * @var Variation|null
+     * @var Variation[]
      */
-    private $selectedVariation;
+    private $selectedVariations = [];
 
 
     /**
@@ -64,7 +65,7 @@ final class Experiment
      *
      * @param string        $name
      * @param bool          $enabled
-     * @param array         $groups
+     * @param Group[]       $groups
      * @param int           $seed
      * @param Variation[]   $variations
      * @param callable|null $callback
@@ -73,9 +74,12 @@ final class Experiment
     {
         $this->name = $name;
         $this->enabled = $enabled;
-        $this->groups = $groups;
         $this->seed = $seed;
         $this->callback = $callback;
+
+        foreach ($groups as $group) {
+            $this->addGroup($group);
+        }
 
         foreach ($variations as $variation) {
             $this->addVariation($variation);
@@ -98,7 +102,7 @@ final class Experiment
         $name = $matches[1];
         $seed = (int) $matches[2];
         $enabled = filter_var($matches[3], FILTER_VALIDATE_BOOLEAN);
-        $groups = explode(',', $matches[5] ?? '') ?: [];
+        $groups = Group::collectionFromString($matches[5] ?? '');
         $variations = Variation::collectionFromString($matches[6]);
 
         return new self($name, $enabled, $groups, $seed, $variations);
@@ -121,41 +125,55 @@ final class Experiment
     }
 
     /**
-     * @param mixed $group
+     * @param Group $group
      */
-    public function addGroup($group): void
+    public function addGroup(Group $group): void
     {
-        $this->groups[] = $group;
+        $this->groups[$group->getName()] = $group;
     }
 
     /**
-     * @return array
+     * @param string $name
+     *
+     * @return Group|null
      */
-    public function getGroups(): array
+    public function getGroup(string $name): ?Group
     {
-        return $this->groups;
+        return $this->groups[$name] ?? null;
     }
 
     /**
-     * @param mixed $group
+     * @param array $names
+     *
+     * @return Group[]
+     */
+    public function getGroups(array $names = []): array
+    {
+        if (empty($names)) {
+            return $this->groups;
+        }
+
+        return array_filter($this->groups, static function (string $key) use ($names) {
+            return in_array($key, $names, true);
+        }, ARRAY_FILTER_USE_KEY);
+    }
+
+    /**
+     * @param string $name
      *
      * @return bool
      */
-    public function hasGroup($group): bool
+    public function hasGroup(string $name): bool
     {
-        return in_array($group, $this->groups, true);
+        return array_key_exists($name, $this->groups);
     }
 
     /**
-     * @param mixed $group
+     * @param string $name
      */
-    public function removeGroup($group): void
+    public function removeGroup(string $name): void
     {
-        $key = array_search($group, $this->groups, true);
-
-        if ($key !== false) {
-            unset($this->groups[$key]);
-        }
+        unset($this->groups[$name]);
     }
 
     /**
@@ -197,26 +215,44 @@ final class Experiment
     }
 
     /**
+     * @param string $groupName
+     *
      * @return Variation[]
      */
-    public function getVariations(): array
+    public function getVariations(string $groupName = ''): array
     {
-        return $this->variations;
+        $variations = $this->variations;
+        $group = $this->getGroup($groupName);
+
+        if ($group !== null) {
+            $variations = array_replace($variations, $group->getVariations());
+        }
+
+        return $variations;
     }
 
     /**
+     * @param string $name
+     *
      * @return Variation|null
      */
-    public function getSelectedVariation(): ?Variation
+    public function getSelectedVariation(string $name = 'default'): ?Variation
     {
-        return $this->selectedVariation;
+        return $this->selectedVariations[$name] ?? null;
     }
 
     /**
      * @param Variation|null $selectedVariation
+     * @param string         $name
      */
-    public function setSelectedVariation(?Variation $selectedVariation): void
+    public function setSelectedVariation(?Variation $selectedVariation, string $name = 'default'): void
     {
-        $this->selectedVariation = $selectedVariation;
+        if ($selectedVariation instanceof Variation) {
+            $this->selectedVariations[$name] = $selectedVariation;
+
+            return;
+        }
+
+        unset($this->selectedVariations[$name]);
     }
 }
