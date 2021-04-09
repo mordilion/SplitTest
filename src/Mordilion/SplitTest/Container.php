@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace Mordilion\SplitTest;
 
-use Mordilion\SplitTest\Chooser\BalancedChooser;
 use Mordilion\SplitTest\Chooser\ChooserInterface;
+use Mordilion\SplitTest\Chooser\RandomChooser;
 use Mordilion\SplitTest\Facade\Experiment as ExperimentFacade;
 use Mordilion\SplitTest\Model\Experiment;
 use Mordilion\SplitTest\Model\Experiment\Group;
@@ -49,7 +49,7 @@ class Container
      */
     public function __construct(int $seed = 0, ?ChooserInterface $chooser = null)
     {
-        $this->chooser = $chooser ?? new BalancedChooser();
+        $this->chooser = $chooser ?? new RandomChooser();
 
         $this->setSeed($seed);
     }

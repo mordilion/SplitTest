@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Mordilion\SplitTest;
 
+use Mordilion\SplitTest\Chooser\BalancedChooser;
+use Mordilion\SplitTest\Chooser\RandomChooser;
 use Mordilion\SplitTest\Chooser\StaticChooser;
 use Mordilion\SplitTest\Model\Experiment;
 use Mordilion\SplitTest\Model\Experiment\Variation;
@@ -123,7 +125,7 @@ class ContainerTest extends TestCase
         }
     }
 
-    public function testContainerDistribution()
+    public function testContainerDistributionWithBalancedChooser()
     {
         $counts = [
             'A' => 0,
@@ -135,6 +137,7 @@ class ContainerTest extends TestCase
             $string = '007:0:1=A:60,B:5,C:35';
 
             $container = Container::fromString(urldecode($string), $i);
+            $container->setChooser(new BalancedChooser());
             $variation = $container->getExperimentVariation('007');
 
             $counts[$variation->getName()]++;
@@ -147,6 +150,59 @@ class ContainerTest extends TestCase
         $this->assertEquals(60, $valueA);
         $this->assertEquals(5, $valueB);
         $this->assertEquals(35, $valueC);
+    }
+
+    public function testContainerDistributionWithRandomChooser()
+    {
+        $counts = [
+            'A' => 0,
+            'B' => 0,
+            'C' => 0,
+        ];
+
+        for ($i = 0; $i < 1000; $i++) {
+            $string = '007:0:1=A:60,B:5,C:35';
+
+            $container = Container::fromString(urldecode($string), $i);
+            $container->setChooser(new RandomChooser());
+            $variation = $container->getExperimentVariation('007');
+
+            $counts[$variation->getName()]++;
+        }
+
+        $valueA = (int) round($counts['A'] / (array_sum($counts) / 100));
+        $valueB = (int) round($counts['B'] / (array_sum($counts) / 100));
+        $valueC = (int) round($counts['C'] / (array_sum($counts) / 100));
+
+        $this->assertTrue($valueA >= 55 && $valueA <= 65);
+        $this->assertTrue($valueB >= 2 && $valueB <= 7);
+        $this->assertTrue($valueC >= 30 && $valueC <= 40);
+    }
+
+    public function testContainerDistributionMultipleTests()
+    {
+        $combinedCounts = [
+            'AA' => 0,
+            'AB' => 0,
+            'BA' => 0,
+            'BB' => 0,
+        ];
+
+        for ($i = 1; $i < 100; $i++) {
+            $string = '0007:0:1=A:70,B:30|0008:0:1=A:50,B:50';
+
+            $container = Container::fromString(urldecode($string), $i);
+
+            $variation0007 = $container->getExperimentVariation('0007');
+            $variation0013 = $container->getExperimentVariation('0008');
+
+            $combinedCounts[$variation0007->getName() . $variation0013->getName()]++;
+        }
+
+        $this->assertEquals(34, $combinedCounts['AA'], (string) $combinedCounts['AA']);
+        $this->assertEquals(30, $combinedCounts['AB'], (string) $combinedCounts['AB']);
+        $this->assertEquals(17, $combinedCounts['BA'], (string) $combinedCounts['BA']);
+        $this->assertEquals(18, $combinedCounts['BB'], (string) $combinedCounts['BB']);
     }
 
     public function testContainerDistributionWithSeedsFile()
