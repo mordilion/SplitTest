@@ -14,8 +14,8 @@ $seed = $_COOKIE['seed'] ?? time();
 // set up the container with tests
 $container = new Container();
 $experiment = new Experiment('an-experiment', true);
-$experiment->setVariation(new Experiment\Variation('a', 50)); // 50%
-$experiment->setVariation(new Experiment\Variation('b', 50)); // 50%
+$experiment->addVariation(new Experiment\Variation('a', 50)); // 50%
+$experiment->addVariation(new Experiment\Variation('b', 50)); // 50%
 $container->addExperiment($experiment);
 
 // select the variation based on the provided seed
