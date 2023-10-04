@@ -11,7 +11,8 @@
     ],
     "require": {
         "php": ">=7.1 || >=8.0",
-        "ext-iconv": "*"
+        "ext-iconv": "*",
+        "mordilion/mutils": "^1.2"
     },
     "autoload": {
         "psr-4": {

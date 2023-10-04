@@ -54,10 +54,9 @@ final class Group
             throw new \InvalidArgumentException('Could not match string.');
         }
 
-        $name = $matches[1];
         $variations = Variation::collectionFromString($matches[3] ?? '');
 
-        return new self($name, $variations);
+        return new self($matches[1], $variations);
     }
 
     /**
@@ -75,13 +74,11 @@ final class Group
             throw new \InvalidArgumentException('Could not match string.');
         }
 
-        $collection = [];
+        return array_filter(array_map(static function (array $match) {
+            $item = $match[0];
 
-        foreach ($matches as $match) {
-            $collection[] = self::fromString($match[0]);
-        }
-
-        return $collection;
+            return !empty($item) ? self::fromString($item) : null;
+        }, $matches));
     }
 
     /**

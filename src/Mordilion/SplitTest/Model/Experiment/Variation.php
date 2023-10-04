@@ -74,18 +74,11 @@ final class Variation
      */
     public static function collectionFromString(string $string): array
     {
-        $collection = [];
         $items = explode(',', $string);
 
-        foreach ($items as $item) {
-            if (empty($item)) {
-                continue;
-            }
-
-            $collection[] = self::fromString($item);
-        }
-
-        return $collection;
+        return array_filter(array_map(static function (string $item) {
+            return !empty($item) ? self::fromString($item) : null;
+        }, $items));
     }
 
     /**

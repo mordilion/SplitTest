@@ -222,13 +222,13 @@ final class Experiment
     {
         $name = empty($name) ? 'default' : $name;
 
-        if ($selectedVariation instanceof Variation) {
-            $this->selectedVariations[$name] = $selectedVariation;
+        if (empty($selectedVariation)) {
+            unset($this->selectedVariations[$name]);
 
             return;
         }
 
-        unset($this->selectedVariations[$name]);
+        $this->selectedVariations[$name] = $selectedVariation;
     }
 
     /**
