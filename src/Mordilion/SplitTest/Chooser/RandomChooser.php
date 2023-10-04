@@ -63,6 +63,6 @@ final class RandomChooser implements ChooserInterface
             return $variation->getDistribution();
         }, $variations);
 
-        return mt_rand(1, (int) array_sum($distributions));
+        return mt_rand(1, array_sum($distributions));
     }
 }
