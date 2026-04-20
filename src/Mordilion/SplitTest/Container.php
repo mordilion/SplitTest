@@ -23,7 +23,7 @@ use Mordilion\SplitTest\Model\Experiment\Variation;
 /**
  * @author Henning Huncke <mordilion@gmx.de>
  */
-class Container
+final class Container
 {
     /**
      * @var ChooserInterface

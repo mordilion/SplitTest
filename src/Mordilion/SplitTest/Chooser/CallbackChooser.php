@@ -43,6 +43,7 @@ final class CallbackChooser implements ChooserInterface
      *
      * @return Variation|null
      */
+    #[\Override]
     public function choose(Experiment $experiment, array $variations): ?Variation
     {
         $variation = call_user_func($this->callback, $experiment, $variations);

@@ -27,6 +27,7 @@ final class BalancedChooser implements ChooserInterface
      *
      * @return Variation|null
      */
+    #[\Override]
     public function choose(Experiment $experiment, array $variations): ?Variation
     {
         $index = $this->getIndexBySeed($experiment, $variations);
@@ -38,7 +39,7 @@ final class BalancedChooser implements ChooserInterface
      * @param Experiment  $experiment
      * @param Variation[] $variations
      *
-     * @return int|string
+     * @return int|string|false
      */
     private function getIndexBySeed(Experiment $experiment, array $variations)
     {
@@ -49,7 +50,7 @@ final class BalancedChooser implements ChooserInterface
         asort($distributions);
         $total = array_sum($distributions);
         $seedPercentage = ($experiment->getSeed() % 100) + 1;
-        $percentage = 0;
+        $percentage = 0.0;
 
         foreach ($distributions as $index => $distribution) {
             $percentage += $distribution / $total * 100;

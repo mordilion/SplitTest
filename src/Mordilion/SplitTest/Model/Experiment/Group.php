@@ -70,7 +70,8 @@ final class Group
             return [];
         }
 
-        if (!preg_match_all(self::FROM_STRING_PATTERN, $string, $matches, PREG_SET_ORDER)) {
+        $count = preg_match_all(self::FROM_STRING_PATTERN, $string, $matches, PREG_SET_ORDER);
+        if ($count === false || $count === 0) {
             throw new \InvalidArgumentException('Could not match string.');
         }
 

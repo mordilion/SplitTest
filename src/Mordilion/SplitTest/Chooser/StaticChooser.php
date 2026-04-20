@@ -47,6 +47,7 @@ final class StaticChooser implements ChooserInterface
      *
      * @return Variation|null
      */
+    #[\Override]
     public function choose(Experiment $experiment, array $variations): ?Variation
     {
         $variationsNames = array_map(static function (Variation $variation) {

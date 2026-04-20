@@ -27,6 +27,7 @@ final class RandomChooser implements ChooserInterface
      *
      * @return Variation|null
      */
+    #[\Override]
     public function choose(Experiment $experiment, array $variations): ?Variation
     {
         $random = $this->getRandomBySeed($experiment, $variations);
