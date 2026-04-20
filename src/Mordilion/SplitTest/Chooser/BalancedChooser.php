@@ -53,7 +53,7 @@ final class BalancedChooser implements ChooserInterface
         $percentage = 0.0;
 
         foreach ($distributions as $index => $distribution) {
-            $percentage += $distribution / $total * 100;
+            $percentage += (float) $distribution / (float) $total * 100.0;
 
             if ($seedPercentage <= $percentage) {
                 return $index;
