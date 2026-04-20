@@ -46,7 +46,7 @@ final class BalancedChooser implements ChooserInterface
             return $variation->getDistribution();
         }, $variations);
 
-        \MUtils\Arrays\asort($distributions);
+        asort($distributions);
         $total = array_sum($distributions);
         $seedPercentage = ($experiment->getSeed() % 100) + 1;
         $percentage = 0;
